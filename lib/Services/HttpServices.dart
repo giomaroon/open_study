@@ -210,7 +210,7 @@ class HttpServices {
       response = await get(url, headers: cookie);
       // if moodleSession is old, throws exception: loop redirect
       html = parse(response.body);
-      print('getHtml success');
+      //print('getHtml success');
       return html;
     } catch(err) {
       print('getHtml fail');
