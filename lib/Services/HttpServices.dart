@@ -15,9 +15,14 @@ class HttpServices {
   DateTime getEventDateTime(String datetime) {
     Map monthNum = {'Ιανουάριος': 1, 'Φεβρουάριος': 2, 'Μάρτιος': 3, 'Απρίλιος': 4,
       'Μάιος': 5, 'Ιούνιος': 6, 'Ιούλιος': 7, 'Αύγουστος': 8, 'Σεπτέμβριος': 9,
-      'Οκτώβριος': 10, 'Νοέμβριος': 11, 'Δεκέμβριος': 12};
+      'Οκτώβριος': 10, 'Νοέμβριος': 11, 'Δεκέμβριος': 12, 'Ιανουαρίου': 1,
+      'Φεβρουαρίου': 2, 'Μαρτίου': 3, 'Απριλίου': 4, 'Μαΐου': 5, 'Ιουνίου': 6,
+      'Ιουλίου': 7, 'Αυγούστου': 8, 'Σεπτεμβρίου': 9, 'Οκτωβρίου': 10,
+      'Νοεμβρίου': 11, 'Δεκεμβρίου': 12};
     var datetimeList = datetime.split(', ');
+    print(datetime);
     //check if is 'Αύριο' or 'Σήμερα'....
+    // TODO try catch
     if (datetimeList[0]=='Αύριο') {
       var time = datetimeList[1].split(' » ')[0].split(':');
       var hour = int.tryParse(time[0])?? 0;
@@ -27,6 +32,7 @@ class HttpServices {
       dt = dt.add(const Duration(days: 1));
       return dt;
     } else if (datetimeList[0]=='Σήμερα'){
+      print('a');
       var time = datetimeList[1].split(' » ')[0].split(':');
       var hour = int.tryParse(time[0])?? 0;
       var min = int.tryParse(time[1])?? 0;
@@ -34,14 +40,18 @@ class HttpServices {
       var dt = DateTime(now.year, now.month, now.day, hour, min);
       return dt;
     } else {
+      print('a');
       var day = int.tryParse(datetimeList[1].split(' ')[0])?? 0;
       var monthString = datetimeList[1].split(' ')[1];
+      print(monthString);
       var month = monthNum[monthString];
+      print(month);
       var time = datetimeList[2].split(' » ')[0].split(':');
       var hour = int.tryParse(time[0])?? 0;
       var min = int.tryParse(time[1])?? 0;
       var now = DateTime.now();
       var year = month >= now.month? now.year : now.year+1;
+      print(year);
       var dt = DateTime(year, month, day, hour, min);
       return dt;
     }
@@ -258,8 +268,10 @@ class HttpServices {
       print(err);
     }
     var htmlEvents=html.getElementsByClassName('event');
+
     try {
       for (int i=0; i<htmlEvents.length; i=i+1) {
+        print(htmlEvents[i]);
         var htmlId = htmlEvents[i].children[1].attributes['data-event-id'];
         eventList.add(Event(
             linkId: htmlEvents[i].children[1].attributes['data-event-id']!,

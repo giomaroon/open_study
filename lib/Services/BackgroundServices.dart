@@ -31,7 +31,7 @@ void callbackDispatcher() {
             for (var event in eventList) {
               if (event.notificationId==0) {
                 var eventDateTime=DateTime.parse(event.dateTimeParsed);
-                eventDateTime=eventDateTime.subtract(Duration(hours: 4));
+                eventDateTime=eventDateTime.subtract(Duration(hours: 2));
                 //print(eventDateTime);
                 var now=DateTime.now();
                 if (now.isBefore(eventDateTime) &&
@@ -60,7 +60,7 @@ void callbackDispatcher() {
         break;
       case 'post':
         HttpOverrides.global = new MyHttpOverrides();
-        print('start');
+        //print('start');
         SharedPreferences prefs = await SharedPreferences.getInstance();
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
