@@ -216,7 +216,7 @@ Future<void> activateEventNotifications(bool on, int userId) async {
     await Workmanager().registerPeriodicTask(
       '1',
       'event',
-      initialDelay: Duration(minutes: 5),
+      initialDelay: Duration(minutes: 10),
       frequency: Duration(hours: 12)
     );
   } else {
@@ -244,7 +244,7 @@ Future<void> activateEventNotifications(bool on, int userId) async {
   //print(newuser.toMap());
 }
 
-Future<void> activatePostNotifications(bool on, int userId) async {
+Future<void> activatePostNotifications(bool on, int userId,{int? hours}) async {
   if (on==true) {
     // await notificationServices.showNotification(
     //     id: 3,
@@ -262,8 +262,8 @@ Future<void> activatePostNotifications(bool on, int userId) async {
     await Workmanager().registerPeriodicTask(
       '2',
       'post',
-      initialDelay: Duration(minutes: 10),
-      frequency: Duration(hours: 8)
+      initialDelay: Duration(minutes: 5),
+      frequency: Duration(hours: hours??4)
     );
   } else {
     await Workmanager().cancelByUniqueName('2');
