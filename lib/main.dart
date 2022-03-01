@@ -13,7 +13,7 @@ import 'Services/BackgroundServices.dart';
 
 var activeUserId;
 var initialRoute;
-String payload='';
+var payload;
 
 NotificationServices notificationServices = NotificationServices();
 
@@ -37,12 +37,14 @@ void main() async {
   await notificationServices.initializeNotifications();
 
   //..... check if app is launched by notification and set initialRoute.......
-  payload = await notificationServices.getLaunchAppPayload()?? '';
+
+  payload = await notificationServices.getLaunchAppPayload();
+  print('main payload : '+payload);
   if (activeUserId==0) {
     initialRoute='LoginPage';
-  } else if (payload=='') {
+  } else if (payload==null) {
     initialRoute='/';
-  } else {
+  } else if (payload.split(' ').length==2){
     initialRoute = payload.split(' ')[1];
     //payload='';
   }

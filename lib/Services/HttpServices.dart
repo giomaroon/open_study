@@ -13,6 +13,7 @@ class HttpServices {
 
   //... parse datetimeString to DateTime
   DateTime? getEventDateTime(String datetime) {
+    var now = DateTime.now();
     Map monthNum = {'Ιανουάριος': 1, 'Φεβρουάριος': 2, 'Μάρτιος': 3, 'Απρίλιος': 4,
       'Μάιος': 5, 'Ιούνιος': 6, 'Ιούλιος': 7, 'Αύγουστος': 8, 'Σεπτέμβριος': 9,
       'Οκτώβριος': 10, 'Νοέμβριος': 11, 'Δεκέμβριος': 12, 'Ιανουαρίου': 1,
@@ -28,7 +29,7 @@ class HttpServices {
         var time = datetimeList[1].split(' » ')[0].split(':');
         var hour = int.tryParse(time[0])?? 0;
         var min = int.tryParse(time[1])?? 0;
-        var now = DateTime.now();
+        //var now = DateTime.now();
         var dt = DateTime(now.year, now.month, now.day, hour, min);
         dt = dt.add(const Duration(days: 1));
         return dt;
@@ -37,7 +38,7 @@ class HttpServices {
         var time = datetimeList[1].split(' » ')[0].split(':');
         var hour = int.tryParse(time[0])?? 0;
         var min = int.tryParse(time[1])?? 0;
-        var now = DateTime.now();
+        //var now = DateTime.now();
         var dt = DateTime(now.year, now.month, now.day, hour, min);
         return dt;
       } else {
@@ -50,7 +51,7 @@ class HttpServices {
         var time = datetimeList[2].split(' » ')[0].split(':');
         var hour = int.tryParse(time[0])?? 0;
         var min = int.tryParse(time[1])?? 0;
-        var now = DateTime.now();
+        //var now = DateTime.now();
         var year = month >= now.month? now.year : now.year+1;
         print(year);
         var dt = DateTime(year, month, day, hour, min);
@@ -64,15 +65,17 @@ class HttpServices {
   DateTime getDiscussDateTime(String datetime) {
     var dt=DateTime.now();
     Map monthNum = {'Ιαν': 1, 'Φεβ': 2, 'Μάρ': 3, 'Απρ': 4, 'Μάι': 5, 'Ιού': 6,
-      'Αύγ': 8, 'Σεπ': 9, 'Οκτ': 10, 'Νοέ': 11, 'Δεκ': 12};
+      'Αύγ': 8, 'Σεπ': 9, 'Οκτ': 10, 'Νοέ': 11, 'Δεκ': 12, 'Μαρ': 3, 'Μαΐ': 5,
+      'Ιούν': 6, 'Ιουν': 6, 'Ιου': 6, 'Ιούλ': 7, 'Ιουλ':7, 'Αυγ': 8, 'Νοε': 11, };
+    //print(datetime);
     try {
       // parsing datetime   e.g:  Κυρ, 13 Φεβ 2022, 8:20 μμ
       var dateList = datetime.split(', ')[1].split(' ');
       var day = int.tryParse(dateList[0])??0;
       var monthString = dateList[1];
+      //print(monthString);
       var month = monthNum[monthString];
       var year = int.tryParse(dateList[2])??0;
-
       var timeList = datetime.split(', ')[2].split(' ');
       var time = timeList[0].split(':');
       var hour = int.tryParse(time[0])?? 0;
@@ -84,6 +87,7 @@ class HttpServices {
     } catch (err) {
       print('error parsing discuss dateTime');
     }
+    //print(dt);
     return dt;
   }
 
@@ -233,7 +237,7 @@ class HttpServices {
     // if response is null or redirected to login page then
     // reconnect, get new moodleSession and get html
     if (response==null || response.headers['location'] == loginLink) {
-      print('reconnecting...');
+      print('get html reconnecting...');
       try {
         moodleSession=await reConnect(activeUserId);
         if (moodleSession!='no connection' && moodleSession!='no user') {
@@ -384,6 +388,7 @@ class HttpServices {
         : [];
     try {
       for (int i=0; i<htmlDiscussions.length; ++i) {
+        print('start getting discuss');
         discussionList.add(Discussion(
             title: htmlDiscussions[i].getElementsByClassName('topic starter')[0].text,
             linkId: htmlDiscussions[i].getElementsByClassName('topic starter')[0].getElementsByTagName('a')[0].attributes['href']!,
@@ -396,6 +401,7 @@ class HttpServices {
             postsUpdateTime: '',
             forumId: forumId
         ));
+        //print(discussionList.map((e) => e.toMap()));
       }
     } catch(err) {
       print(err);

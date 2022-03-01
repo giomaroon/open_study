@@ -21,8 +21,10 @@ class NotificationServices {
   //..........Initialize Notifiication Settings............
 
   Future<void> initializeNotifications() async {
+
     final AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('app_icon');
+
     final IOSInitializationSettings initializationSettingsIOS =
     IOSInitializationSettings(
         requestAlertPermission: false,
@@ -43,19 +45,18 @@ class NotificationServices {
             ),
           );
         });
+
     final InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS);
-    // tz.initializeTimeZones();
-    // final String? timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
-    // tz.setLocalLocation(tz.getLocation(timeZoneName!));
+
     await notifications.initialize(initializationSettings,
         onSelectNotification: (String? _payload) async {
           if (_payload != null) {
             //print('onSelectNoficiation');
-            //print('notification payload: $_payload');
+            print('onSelectedNotification payload: $_payload');
           }
-          payload = _payload??'';
+          payload = _payload;
           streamNotification.add(_payload);
         });
   }
@@ -80,13 +81,21 @@ class NotificationServices {
 
   void onClickNotification(BuildContext context) {
     streamNotification.stream.listen((String? payload) async {
-      //print('onClickNotification');
-      //print(payload);
-      await Navigator.pushNamed(context, payload?.split(' ')[1]?? '/');
+      print('onClickNotification');
+      print(payload);
+      var route;
+      if (payload?.split(' ').length==2) {
+        route=payload?.split(' ')[1];
+      } else {
+        route='/';
+      }
+      await Navigator.pushNamed(context, route);
+
       // await Navigator.push(context, MaterialPageRoute(builder:
       //     (context) => CoursesListPage()));
       // await Navigator.pushNamed(context, payload!.substring(0,11));
     });
+
   }
 
   void onClickNotificationIOS(BuildContext context) {

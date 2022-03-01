@@ -29,6 +29,7 @@ class _PostsPageState extends State<PostsPage> {
     List<Post> _postList=[];
     var db=DBServices.instance;
     if (widget.discussion!=null) {
+      print('widget.discussion not null');
       _postList=await db.getObjectsById(object: Post, id: widget.discussion!.id!)
                 as List<Post>;
       setState(() {
@@ -61,7 +62,7 @@ class _PostsPageState extends State<PostsPage> {
         }
       }
     } else if (widget.payloadDiscussionId != null) {
-      //print('widget.discussion is null, get discussionId from payload');
+      print('widget.discussion is null, get discussionId from payload');
       var discussionId = int.tryParse(widget.payloadDiscussionId!);
       if (discussionId != null) {
         var dbase=await db.database;
@@ -87,12 +88,14 @@ class _PostsPageState extends State<PostsPage> {
 
   @override
   initState() {
+    print('postpage init');
     getPosts();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    print('postspage');
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(

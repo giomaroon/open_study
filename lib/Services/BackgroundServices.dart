@@ -120,7 +120,7 @@ void callbackDispatcher() {
                                 body: postList.last.content,
                                 payload: discussion.id.toString()+' '+'/PostsPage'
                             );
-                            //print('notification with id: '+notifId.toString());
+                            print('notification with id: '+notifId.toString());
                             ++notifId;
                           }
                         }
@@ -246,6 +246,19 @@ Future<void> activateEventNotifications(bool on, int userId) async {
 
 Future<void> activatePostNotifications(bool on, int userId) async {
   if (on==true) {
+    // await notificationServices.showNotification(
+    //     id: 3,
+    //     title: 'λαλα',
+    //     body: 'μπλα',
+    //     payload: '1'+' '+'/PostsPage'
+    // );
+    // await Future.delayed(Duration(seconds: 2));
+    // await notificationServices.showNotification(
+    //     id: 4,
+    //     title: 'λαλα2',
+    //     body: 'μπλα2',
+    //     payload: '2'+' '+'/PostsPage'
+    // );
     await Workmanager().registerPeriodicTask(
       '2',
       'post',
