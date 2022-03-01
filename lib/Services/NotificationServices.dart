@@ -55,7 +55,7 @@ class NotificationServices {
             //print('onSelectNoficiation');
             //print('notification payload: $_payload');
           }
-          payload = _payload;
+          payload = _payload??'';
           streamNotification.add(_payload);
         });
   }

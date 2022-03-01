@@ -29,7 +29,7 @@ void callbackDispatcher() {
             eventList = await db.getObjectsById(object: Event, id: activeUserId)
                               as List<Event>;
             for (var event in eventList) {
-              if (event.notificationId==0) {
+              if (event.notificationId==0 && event.dateTimeParsed!='null') {
                 var eventDateTime=DateTime.parse(event.dateTimeParsed);
                 eventDateTime=eventDateTime.subtract(Duration(hours: 2));
                 //print(eventDateTime);
