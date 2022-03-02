@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gio_app/Pages/LoadingPage.dart';
 import 'package:gio_app/Services/HttpServices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +8,7 @@ import '../Models.dart';
 import '../main.dart';
 import 'HomePage.dart';
 import 'package:html/dom.dart' show Document;
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -32,6 +34,8 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey=GlobalKey<FormState>();
 
   Future<void> chekcIfUserExists() async {
+    var storage=FlutterSecureStorage();
+    await storage.write(key: 'dbpass', value: username+password);
     var db = await DBServices.instance.database;
     var userExistsDB = await db.query('User', columns: ['id'],
         where: 'username=? AND password=?',

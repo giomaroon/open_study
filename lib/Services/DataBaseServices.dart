@@ -1,5 +1,6 @@
 
 //import 'package:flutter/cupertino.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gio_app/Services/BackgroundServices.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart';
@@ -16,13 +17,14 @@ class DBServices {
   Future<Database> get database async => _database ??= await _initDatabase();
 
   Future<Database> _initDatabase() async {
-
+    var storage=FlutterSecureStorage();
+    var dbpass=await storage.read(key: 'dbpass');
     var databasesPath = await getDatabasesPath();
     String path=join(databasesPath, 'studyAppDB.db');
     return await openDatabase(
       path,
       version: 1,
-      password: '0p3nUn1v3Rc1tY',
+      password: dbpass,
       onCreate: _onCreate
     );
   }
