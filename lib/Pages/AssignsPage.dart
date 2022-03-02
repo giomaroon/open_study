@@ -3,8 +3,8 @@ import 'package:gio_app/Services/HttpServices.dart';
 import '../Services/DataBaseServices.dart';
 import '../Models.dart';
 
-class GradesPage extends StatefulWidget {
-  const GradesPage({
+class AssignsPage extends StatefulWidget {
+  const AssignsPage({
     this.course,
     this.payloadCourseId,
     Key? key}) : super(key: key);
@@ -13,46 +13,46 @@ class GradesPage extends StatefulWidget {
   final String? payloadCourseId;
 
   @override
-  _GradesPageState createState() => _GradesPageState();
+  _AssignsPageState createState() => _AssignsPageState();
 }
 
-class _GradesPageState extends State<GradesPage> {
+class _AssignsPageState extends State<AssignsPage> {
 
-  List<Grade> gradeList = [];
+  List<Assign> assignList = [];
   bool loading = true;
   bool connected=true;
   bool newGrade=false;
   String updateTime='';
 
-  Future<void> getGrades() async {
-    List<Grade> _gradeList=[];
+  Future<void> getAssigns() async {
+    List<Assign> _assignList=[];
     if (widget.course?.id !=null) {
       var courseId = widget.course!.id;
       var db= DBServices.instance;
-      _gradeList=await db.getObjectsById(object: Grade, id: courseId)
-                     as List<Grade>;
+      _assignList=await db.getObjectsById(object: Assign, id: courseId)
+                     as List<Assign>;
       setState(() {
-        gradeList=_gradeList;
+        assignList=_assignList;
       });
       var dbase = await db.database;
-      var emptyGradeLinks = await dbase.query('Grade', columns: ['linkId'], where: 'grade=? AND courseId=?',
+      var emptyGradeLinks = await dbase.query('Assign', columns: ['link'], where: 'grade=? AND courseId=?',
                                       whereArgs: ['', courseId]);
       if (emptyGradeLinks.isNotEmpty) {
         var study=HttpServices();
         for (var e in emptyGradeLinks) {
-          var html = await study.getHtml(e['linkId'].toString());
+          var html = await study.getHtml(e['link'].toString());
           if (html!=null) {
             var grade=study.getGrade(html);
             if (grade != '') {
               newGrade=true;
-              await dbase.update('Grade', {'grade': grade}, where: 'linkId=? AND courseId=?',
-                               whereArgs: [e['linkId'], courseId]);
+              await dbase.update('Assign', {'grade': grade}, where: 'link=? AND courseId=?',
+                               whereArgs: [e['link'], courseId]);
             } else if (grade == '') {
               break;
             }
-            await db.setUpdateTime(object: 'grades', foreignId: courseId!);
+            await db.setUpdateTime(object: 'assigns', foreignId: courseId!);
           } else {
-            updateTime=await db.getUpdateTime(object: 'grades', foreignId: courseId!);
+            updateTime=await db.getUpdateTime(object: 'assigns', foreignId: courseId!);
             if (updateTime.split(':').length>1) {
               updateTime='Τελευταία ενημέρωση: '+updateTime.split(':')[0]+':'+updateTime.split(':')[1];
             }
@@ -66,10 +66,10 @@ class _GradesPageState extends State<GradesPage> {
           }
         }
         if (newGrade) {
-          _gradeList = await db.getObjectsById(object: Grade, id: courseId) as List<Grade>;
+          _assignList = await db.getObjectsById(object: Assign, id: courseId) as List<Assign>;
           if (mounted) {
             setState(() {
-              gradeList=_gradeList;
+              assignList=_assignList;
               loading=false;
             });
           }
@@ -86,9 +86,9 @@ class _GradesPageState extends State<GradesPage> {
       var courseId = int.tryParse(widget.payloadCourseId!);
       if (courseId != null) {
         var db = DBServices.instance;
-        _gradeList = await db.getObjectsById(object: Grade, id: courseId) as List<Grade>;
+        _assignList = await db.getObjectsById(object: Assign, id: courseId) as List<Assign>;
         setState(() {
-          gradeList=_gradeList;
+          assignList=_assignList;
           loading = false;
         });
       }
@@ -102,7 +102,7 @@ class _GradesPageState extends State<GradesPage> {
 
   @override
   initState() {
-    getGrades();
+    getAssigns();
     super.initState();
   }
 
@@ -124,7 +124,7 @@ class _GradesPageState extends State<GradesPage> {
                 connected=true;
               });
               await Future.delayed(Duration(seconds: 1));
-              await getGrades();
+              await getAssigns();
             },
           ),
         ],
@@ -155,7 +155,7 @@ class _GradesPageState extends State<GradesPage> {
                ),
                ),
             Expanded(
-                child: gradeList.isEmpty
+                child: assignList.isEmpty
                   ? Container(
                     child: Center(
                       child: Text(loading? 'σύνδεση...':'Δεν υπάρχουν δεδομένα',
@@ -166,11 +166,11 @@ class _GradesPageState extends State<GradesPage> {
                     ),
                   )
                   : ListView(
-                      children: gradeList.map((e) =>
+                      children: assignList.map((e) =>
                         Card(
                         child: ListTile(
                         tileColor: Colors.white,
-                        title: Text(e.assign+' :  '+e.grade,
+                        title: Text(e.title+' :  '+e.grade,
                           style: TextStyle(
                               fontSize: 18,
                               fontFamily: 'Arial'

@@ -4,7 +4,7 @@ import 'dart:async';
 import '../Services/DataBaseServices.dart';
 import '../Models.dart';
 import 'DiscussionsPage.dart';
-import 'GradesPage.dart';
+import 'AssignsPage.dart';
 
 class CoursePage extends StatefulWidget {
   const CoursePage({
@@ -28,39 +28,39 @@ class _CoursePageState extends State<CoursePage> {
   String unread='';
   bool loading=true;
   bool connected=true;
-  bool gradesExist=false;
+  bool assignsExist=false;
 
-  Future<void> getForumsGradeLinks(BuildContext context) async {
+  Future<void> getForumsAssigns(BuildContext context) async {
     List<Forum> _forumList = [];
-    List<Grade> _assignLinks = [];
+    List<Assign> _assignLinks = [];
     var db = DBServices.instance;
     if (widget.course != null) {
       _forumList=await db.getObjectsById(object: Forum, id: widget.course!.id!)
                  as List<Forum>;
-      _assignLinks=await db.getObjectsById(object: Grade, id: widget.course!.id!)
-                   as List<Grade>;
+      _assignLinks=await db.getObjectsById(object: Assign, id: widget.course!.id!)
+                   as List<Assign>;
       setState(() {
-        gradesExist=_assignLinks.isNotEmpty;
+        assignsExist=_assignLinks.isNotEmpty;
         forumList=_forumList;
       });
       var study = HttpServices();
-      var html = await study.getHtml(widget.course!.linkId);
+      var html = await study.getHtml(widget.course!.link);
       if (html != null) {
         _forumList = study.getForums(html, widget.course!.id!);
         //print(_forumList.map((e) => e.toMap()));
-        _assignLinks = study.getEmptyGrades(html, widget.course!.id!);
+        _assignLinks = study.getAssigns(html, widget.course!.id!);
         await db.updateDB(newData: _forumList, whereId: 'courseId', id: widget.course!.id!);
         await db.updateDB(newData: _assignLinks, whereId: 'courseId', id: widget.course!.id!);
-        gradesExist = true;
+        assignsExist = true;
         _forumList =await db.getObjectsById(object: Forum, id: widget.course!.id!)
                     as List<Forum>;
         //print(_forumList.map((e) => e.toMap()));
-        _assignLinks=await db.getObjectsById(object: Grade, id: widget.course!.id!)
-                     as List<Grade>;
+        _assignLinks=await db.getObjectsById(object: Assign, id: widget.course!.id!)
+                     as List<Assign>;
         if (mounted) {
           setState(() {
             forumList=_forumList;
-            gradesExist=_assignLinks.isNotEmpty;
+            assignsExist=_assignLinks.isNotEmpty;
             loading = false;
           });
         }
@@ -83,7 +83,7 @@ class _CoursePageState extends State<CoursePage> {
 
   @override
   initState() {
-    getForumsGradeLinks(this.context);
+    getForumsAssigns(this.context);
     super.initState();
   }
 
@@ -95,7 +95,7 @@ class _CoursePageState extends State<CoursePage> {
         backgroundColor: Color(0xFFCF118C),
         title: RichText(
           text: TextSpan(
-            text: widget.course?.name?? '',
+            text: widget.course?.title?? '',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold
@@ -113,7 +113,7 @@ class _CoursePageState extends State<CoursePage> {
                 connected=true;
               });
               await Future.delayed(Duration(seconds: 1));
-              await getForumsGradeLinks(context);
+              await getForumsAssigns(context);
             },
           ),
         ],
@@ -138,7 +138,7 @@ class _CoursePageState extends State<CoursePage> {
             : Container(
               child: Text('εκτός σύνδεσης', style: TextStyle(color: Colors.red),),
           ),
-          gradesExist
+          assignsExist
           ? Card(
               child: ListTile(
                 leading: Padding(
@@ -160,7 +160,7 @@ class _CoursePageState extends State<CoursePage> {
                 onTap: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder:
-                          (context) => GradesPage(course: widget.course, )));
+                          (context) => AssignsPage(course: widget.course, )));
                 },
                 onLongPress: () {},
               )
@@ -205,7 +205,7 @@ class _CoursePageState extends State<CoursePage> {
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
-                              child: Text(e.name,
+                              child: Text(e.title,
                                 style: TextStyle(
                                     fontSize: 18,
                                     fontFamily: 'Arial'
@@ -233,7 +233,7 @@ class _CoursePageState extends State<CoursePage> {
                             (context) => DiscussionsPage(forum: e)))
                               .then((value) async {
                                 //loading=true;
-                                await getForumsGradeLinks(this.context);
+                                await getForumsAssigns(this.context);
                                 if (mounted) {
                                   setState(() {}); // TODO loading = true
                                 }

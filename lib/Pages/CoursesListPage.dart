@@ -144,7 +144,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                                 title: Padding(
                                   padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
                                   child: Text(
-                                    course.name,
+                                    course.title,
                                     style: TextStyle(
                                         fontSize: 18, fontFamily: 'Arial'),
                                     textAlign: TextAlign.left,

@@ -228,7 +228,7 @@ class HttpServices {
       response = await get(url, headers: cookie);
       // if moodleSession is old, throws exception: loop redirect
       html = parse(response.body);
-      //print('getHtml success');
+      print('html got');
       return html;
     } catch(err) {
       print('getHtml fail');
@@ -248,6 +248,7 @@ class HttpServices {
             return html;
           } else {
             html = parse(response.body);
+            print('html got');
             return html;
           }
         } else {
@@ -282,8 +283,8 @@ class HttpServices {
         print(htmlEvents[i]);
         var htmlId = htmlEvents[i].children[1].attributes['data-event-id'];
         eventList.add(Event(
-            linkId: htmlEvents[i].children[1].attributes['data-event-id']!,
-            type: htmlEvents[i].children[1].text,
+            link: htmlEvents[i].children[1].attributes['data-event-id']!,
+            title: htmlEvents[i].children[1].text,
             dateTime: htmlEvents[i].children[2].text,
             dateTimeParsed: getEventDateTime(htmlEvents[i].children[2].text).toString(),
             webex: webexLinks[htmlId]??'',
@@ -303,8 +304,8 @@ class HttpServices {
     try {
       for (int i=0; i<htmlCourses.length; i=i+1) {
         courseList.add(Course(
-            name: htmlCourses[i].getElementsByClassName('h5')[0].text,
-            linkId: htmlCourses[i].getElementsByClassName('h5')[0].firstChild!.attributes['href']!,
+            title: htmlCourses[i].getElementsByClassName('h5')[0].text,
+            link: htmlCourses[i].getElementsByClassName('h5')[0].firstChild!.attributes['href']!,
             gradesUpdateTime: '',
             userId: userId
         ));
@@ -315,17 +316,17 @@ class HttpServices {
     return courseList;
   }
 
-  List<Grade> getEmptyGrades(Document html, int courseId) {
-    List<Grade> gradeList = [];
-    var htmlGrades=html.getElementsByClassName('activity assign modtype_assign');
+  List<Assign> getAssigns(Document html, int courseId) {
+    List<Assign> assignList = [];
+    var htmlAssign=html.getElementsByClassName('activity assign modtype_assign');
     try {
-      for (int i=0; i<htmlGrades.length; ++i) {
+      for (int i=0; i<htmlAssign.length; ++i) {
         //check if assign link exists
-        if (htmlGrades[i].getElementsByTagName('a').isNotEmpty) {
-          gradeList.add(Grade(
-              assign: htmlGrades[i].getElementsByClassName('instancename')[0].text,
+        if (htmlAssign[i].getElementsByTagName('a').isNotEmpty) {
+          assignList.add(Assign(
+              title: htmlAssign[i].getElementsByClassName('instancename')[0].text,
               grade: '',
-              linkId: htmlGrades[i].getElementsByTagName('a')[0].attributes['href']!,
+              link: htmlAssign[i].getElementsByTagName('a')[0].attributes['href']!,
               courseId: courseId
           ));
         }
@@ -333,7 +334,7 @@ class HttpServices {
     } catch(err) {
       print(err);
     }
-    return gradeList;
+    return assignList;
   }
 
   String getGrade(Document html) {
@@ -367,8 +368,8 @@ class HttpServices {
           //print(unread);
         } //else {unread='';}
         forumList.add(Forum(
-            name: htmlForums[i].getElementsByClassName('instancename')[0].text.split('Φόρουμ')[0],
-            linkId: htmlForums[i].getElementsByTagName('a')[0].attributes['href']!,
+            title: htmlForums[i].getElementsByClassName('instancename')[0].text.split('Φόρουμ')[0],
+            link: htmlForums[i].getElementsByTagName('a')[0].attributes['href']!,
             unread: unread,
             discussionsUpdateTime: '',
             courseId: courseId
@@ -388,10 +389,10 @@ class HttpServices {
         : [];
     try {
       for (int i=0; i<htmlDiscussions.length; ++i) {
-        print('start getting discuss');
+        //print('start getting discuss');
         discussionList.add(Discussion(
             title: htmlDiscussions[i].getElementsByClassName('topic starter')[0].text,
-            linkId: htmlDiscussions[i].getElementsByClassName('topic starter')[0].getElementsByTagName('a')[0].attributes['href']!,
+            link: htmlDiscussions[i].getElementsByClassName('topic starter')[0].getElementsByTagName('a')[0].attributes['href']!,
             authorFirst: htmlDiscussions[i].getElementsByClassName('author')[0].text,
             replies: int.parse(htmlDiscussions[i].getElementsByClassName('replies')[0].text),
             repliesUnread: int.parse(htmlDiscussions[i].getElementsByClassName('replies')[1].text),
@@ -422,7 +423,7 @@ class HttpServices {
         }
         //print(content);
         postList.add(Post(
-            linkId: htmlPosts[i].previousElementSibling!.attributes['id']!,
+            link: htmlPosts[i].previousElementSibling!.attributes['id']!,
             title: htmlPosts[i].children[0].children[1].children[0].text,
             author: htmlPosts[i].children[0].children[1].children[1].children[0]
                 .text,
@@ -437,7 +438,5 @@ class HttpServices {
     }
     return postList;
   }
-
-
 
 }

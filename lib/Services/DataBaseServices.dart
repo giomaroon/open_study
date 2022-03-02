@@ -16,6 +16,7 @@ class DBServices {
   Future<Database> get database async => _database ??= await _initDatabase();
 
   Future<Database> _initDatabase() async {
+
     var databasesPath = await getDatabasesPath();
     String path=join(databasesPath, 'studyAppDB.db');
     return await openDatabase(
@@ -42,8 +43,8 @@ class DBServices {
     await db.execute('''
       CREATE TABLE Course(
           id INTEGER PRIMARY KEY,          
-          name TEXT,
-          linkId TEXT,
+          title TEXT,
+          link TEXT,
           gradesUpdateTime text,
           userId INTEGER REFERENCES User (id)
           ON DELETE CASCADE
@@ -52,8 +53,8 @@ class DBServices {
     await db.execute('''
       CREATE TABLE Event(
           id INTEGER PRIMARY KEY,
-          linkId TEXT,
-          type TEXT,         
+          link TEXT,
+          title TEXT,         
           dateTime TEXT,
           dateTimeParsed TEXT,
           webex TEXT,
@@ -66,8 +67,8 @@ class DBServices {
     await db.execute('''
       CREATE TABLE Forum(
           id INTEGER PRIMARY KEY,          
-          name TEXT,
-          linkId TEXT,
+          title TEXT,
+          link TEXT,
           unread TEXT,
           discussionsUpdateTime TEXT,
           courseId INTEGER,
@@ -85,7 +86,7 @@ class DBServices {
           dateTimeParsed TEXT,
           replies INTEGER,
           repliesUnread INTEGER,
-          linkId TEXT,
+          link TEXT,
           postsUpdateTime TEXT,
           forumId INTEGER,
           FOREIGN KEY (forumId) REFERENCES Forum (id)
@@ -95,7 +96,7 @@ class DBServices {
     await db.execute('''
       CREATE TABLE Post(
           id INTEGER PRIMARY KEY,
-          linkId TEXT,
+          link TEXT,
           dateTime TEXT,
           author TEXT,          
           title  TEXT,
@@ -106,11 +107,11 @@ class DBServices {
       )
       ''');
     await db.execute('''
-      CREATE TABLE Grade(
+      CREATE TABLE Assign(
           id INTEGER PRIMARY KEY,
-          assign TEXT,
+          title TEXT,
           grade TEXT,
-          linkId TEXT,
+          link TEXT,
           courseId INTEGER,
           FOREIGN KEY (courseId) REFERENCES Course (id)
           ON DELETE CASCADE               
@@ -126,7 +127,7 @@ class DBServices {
         await db.update('User', {'eventsUpdateTime':now.toString()}, where: 'id=?',
             whereArgs: [foreignId]);
         break;
-      case 'grades':
+      case 'assigns':
         await db.update('Course', {'gradesUpdateTime':now.toString()}, where: 'id=?',
             whereArgs: [foreignId]);
         break;
@@ -155,7 +156,7 @@ class DBServices {
           updateTime=updateTimeDB[0]['eventsUpdateTime'] as String;
         }
         return updateTime;
-      case 'grades':
+      case 'assigns':
         var updateTimeDB = await db.query('Course', columns: ['gradesUpdateTime'], where: 'id=?',
             whereArgs: [foreignId]);
         if (updateTimeDB.isNotEmpty) {
@@ -247,27 +248,27 @@ class DBServices {
       var table = _newData[0].runtimeType.toString();
       //print(table);
       try {
-        var oldDataLinks = await db.query(table, columns: ['linkId'],
+        var oldDataLinks = await db.query(table, columns: ['link'],
                                        where: '$whereId = ?', whereArgs: [id]);
         //......check for new object and insert to DB........
         var newDataLinks = [];
         _newData.forEach((e) {
-          newDataLinks.add(e.linkId);
+          newDataLinks.add(e.link);
         });
         for (var el in oldDataLinks) {
           //  check if objects in DB exist in new htmlObjects and if not remove them
-          if (newDataLinks.contains(el['linkId'])==false) {
-            await db.delete(table, where: 'linkId=? AND $whereId=?', whereArgs: [el['linkId'], id]);
+          if (newDataLinks.contains(el['link'])==false) {
+            await db.delete(table, where: 'link=? AND $whereId=?', whereArgs: [el['link'], id]);
           } else {
             if (table=='Forum') {
               //print('b');
-              var newDataItemList=_newData.where((element) => element.linkId==el['linkId']).toList();
+              var newDataItemList=_newData.where((element) => element.link==el['link']).toList();
               if (newDataItemList.isNotEmpty) {
-                    await db.update(table, {'unread': newDataItemList[0].unread}, where: 'linkId=? AND courseId=?',
-                        whereArgs: [newDataItemList[0].linkId, id]);
+                    await db.update(table, {'unread': newDataItemList[0].unread},
+                        where: 'link=? AND courseId=?', whereArgs: [newDataItemList[0].link, id]);
               }
             }
-            _newData.removeWhere((item) => item.linkId == el['linkId']);
+            _newData.removeWhere((item) => item.link == el['link']);
           }
         }
         //print(list.map((e) => e.toMap()));
@@ -281,7 +282,6 @@ class DBServices {
         print(err);
       }
     }
-
     return rows;
   }
 
@@ -310,10 +310,10 @@ class DBServices {
             : [];
         return list;
       }
-      case Grade : {
-        var objectsDB = await db.query('Grade', where: 'courseId = ?', whereArgs: [id]);
-        List<Grade> list = objectsDB.isNotEmpty
-            ? objectsDB.map((c) => Grade.fromMap(c)).toList()
+      case Assign : {
+        var objectsDB = await db.query('Assign', where: 'courseId = ?', whereArgs: [id]);
+        List<Assign> list = objectsDB.isNotEmpty
+            ? objectsDB.map((c) => Assign.fromMap(c)).toList()
             : [];
         return list;
       }
@@ -395,11 +395,11 @@ class DBServices {
     return list;
   }
 
-  Future<List<Grade>> getGrades() async {
+  Future<List<Assign>> getAssigns() async {
     Database db = await instance.database;
-    var rows = await db.query('Grade');
-    List<Grade> list = rows.isNotEmpty
-        ? rows.map((c) => Grade.fromMap(c)).toList()
+    var rows = await db.query('Assign');
+    List<Assign> list = rows.isNotEmpty
+        ? rows.map((c) => Assign.fromMap(c)).toList()
         : [];
     return list;
   }

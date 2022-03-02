@@ -42,14 +42,14 @@ void callbackDispatcher() {
                   await notificationServices.showNotificationScheduled(
                       id: notifId+200,
                       title: event.dateTime,
-                      body: event.type,
+                      body: event.title,
                       dateTime: eventDateTime,
                       payload: ' /EventsPage'
                   );
                   var dbase = await db.database;
                   await dbase.update('Event', {'notificationId': notifId},
-                      where: 'linkId=? AND userId=?',
-                      whereArgs: [event.linkId, activeUserId]);
+                      where: 'link=? AND userId=?',
+                      whereArgs: [event.link, activeUserId]);
                   //print('notification with id: '+notificationId.toString());
                 } //else { print('dateTime too ealy for notification');}
               }
@@ -81,7 +81,7 @@ void callbackDispatcher() {
             as List<Course>;
             int notifId=0;
             for (var course in courseList) {
-              html=await study.getHtml(course.linkId);
+              html=await study.getHtml(course.link);
               if (html!=null) {
                 var forumList = study.getForums(html,course.id!);
                 print('forums');
@@ -91,7 +91,7 @@ void callbackDispatcher() {
                 for (var forum in forumList) {
                   if (forum.unread=='- new') {
                     print('unread - new');
-                    html = await study.getHtml(forum.linkId);
+                    html = await study.getHtml(forum.link);
                     if (html!=null) {
                       var discussionList = study.getDiscussions(html, forum.id!);
                       print('discussion');
@@ -104,7 +104,7 @@ void callbackDispatcher() {
                           id: forum.id!) as List<Discussion>;
                       for (var discussion in discussionList) {
                         if (discussion.repliesUnread!=0) {
-                          html = await study.getHtml(discussion.linkId);
+                          html = await study.getHtml(discussion.link);
                           if (html!=null) {
                             var postList = study.getPosts(html, discussion.id!);
                             await db.updateDB(
@@ -155,37 +155,37 @@ void callbackDispatcher() {
                 id: activeUserId) as List<Course>;
             int notifId = 100;
             for (var course in courseList) {
-              html = await study.getHtml(course.linkId);
+              html = await study.getHtml(course.link);
               if (html != null) {
-                var emptyGradeList = study.getEmptyGrades(html, course.id!);
-                var existedGrades=await db.getObjectsById(object: Grade, id: course.id);
+                var emptyGradeAssignList = study.getAssigns(html, course.id!);
+                var existedAssigns=await db.getObjectsById(object: Assign, id: course.id);
                 //...  update DB if new assign exists...
                 await db.updateDB(
-                    newData: emptyGradeList,
+                    newData: emptyGradeAssignList,
                     whereId: 'courseId',
                     id: course.id!);
                 var dbase = await db.database;
-                var emptyGradeLinksRows = await dbase.query('Grade',
+                var emptyGradeLinksRows = await dbase.query('Assign',
                     where: 'grade=? AND courseId=?',
                     whereArgs: ['', course.id]);
-                emptyGradeList = emptyGradeLinksRows.isNotEmpty
-                    ? emptyGradeLinksRows.map((c) => Grade.fromMap(c)).toList()
+                emptyGradeAssignList = emptyGradeLinksRows.isNotEmpty
+                    ? emptyGradeLinksRows.map((c) => Assign.fromMap(c)).toList()
                     : [];
-                for (var e in emptyGradeList) {
-                  var html = await study.getHtml(e.linkId);
+                for (var e in emptyGradeAssignList) {
+                  var html = await study.getHtml(e.link);
                   if (html != null) {
                     var grade = study.getGrade(html);
                     if (grade != '') {
                       //print('new grade: '+grade);
-                      await dbase.update('Grade', {'grade': grade},
-                          where: 'linkId=? AND courseId=?',
-                          whereArgs: [e.linkId, course.id]);
-                      if (existedGrades.isNotEmpty) {
+                      await dbase.update('Assign', {'grade': grade},
+                          where: 'link=? AND courseId=?',
+                          whereArgs: [e.link, course.id]);
+                      if (existedAssigns.isNotEmpty) {
                         await notificationServices.showNotification(
                             id: notifId,
-                            title: course.name,
-                            body: e.assign + ': ' + grade,
-                            payload: course.id.toString() + ' ' + '/GradesPage'
+                            title: course.title,
+                            body: e.title + ': ' + grade,
+                            payload: course.id.toString() + ' ' + '/AssignsPage'
                         );
                         //print('notification with id: '+notifId.toString());
                         ++notifId;
@@ -199,7 +199,7 @@ void callbackDispatcher() {
                     break;
                   }
                 }
-                await db.setUpdateTime(object: 'grades', foreignId: course.id!);
+                await db.setUpdateTime(object: 'assigns', foreignId: course.id!);
               }
             }
           }
@@ -216,7 +216,7 @@ Future<void> activateEventNotifications(bool on, int userId) async {
     await Workmanager().registerPeriodicTask(
       '1',
       'event',
-      initialDelay: Duration(minutes: 10),
+      initialDelay: Duration(minutes: 2),
       frequency: Duration(hours: 12)
     );
   } else {
@@ -262,7 +262,7 @@ Future<void> activatePostNotifications(bool on, int userId,{int? hours}) async {
     await Workmanager().registerPeriodicTask(
       '2',
       'post',
-      initialDelay: Duration(minutes: 5),
+      initialDelay: Duration(minutes: 1),
       frequency: Duration(hours: hours??4)
     );
   } else {
@@ -280,7 +280,7 @@ Future<void> activateGradeNotifications(bool on, int userId) async {
     await Workmanager().registerPeriodicTask(
       '3',
       'grade',
-      initialDelay: Duration(minutes: 15),
+      initialDelay: Duration(minutes: 3),
       frequency: Duration(hours: 24)
     );
   } else {

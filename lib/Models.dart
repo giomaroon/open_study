@@ -47,32 +47,32 @@ class User {
 
 class Course {
   final int? id;
-  final String name;
-  final String linkId;
+  final String title;
+  final String link;
   final String gradesUpdateTime;
   final int? userId;
   final String courseFid = 'userId';
 
   Course({
     this.id,
-    required this.name,
-    required this.linkId,
+    required this.title,
+    required this.link,
     required this.gradesUpdateTime,
     this.userId});
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'name': name,
-      'linkId': linkId,
+      'title': title,
+      'link': link,
       'gradesUpdateTime': gradesUpdateTime,
       'userId': userId
     };
   }
   factory Course.fromMap(Map<String, dynamic> map) => new Course(
       id: map['id'],
-      name: map['name'],
-      linkId: map['linkId'],
+      title: map['title'],
+      link: map['link'],
       gradesUpdateTime: map['gradesUpdateTime'],
       userId: map['userId']
   );
@@ -80,16 +80,16 @@ class Course {
 
 class Forum {
   final int? id;
-  final String name;
-  final String linkId;
+  final String title;
+  final String link;
   final String unread;
   final String discussionsUpdateTime;
   final int? courseId;
 
   Forum({
     this.id,
-    required this.name,
-    required this.linkId,
+    required this.title,
+    required this.link,
     required this.unread,
     required this.discussionsUpdateTime,
     this.courseId});
@@ -97,8 +97,8 @@ class Forum {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'name': name,
-      'linkId': linkId,
+      'title': title,
+      'link': link,
       'unread': unread,
       'discussionsUpdateTime': discussionsUpdateTime,
       'courseId': courseId
@@ -106,8 +106,8 @@ class Forum {
   }
   factory Forum.fromMap(Map<String, dynamic> map) => new Forum(
     id: map['id'],
-    name: map['name'],
-    linkId: map['linkId'],
+    title: map['title'],
+    link: map['link'],
     unread: map['unread'],
     discussionsUpdateTime: map['discussionsUpdateTime'],
     courseId: map['courseId']
@@ -123,7 +123,7 @@ class Discussion {
   final String dateTimeParsed;
   final int replies;
   final int repliesUnread;
-  final String linkId;
+  final String link;
   final String postsUpdateTime;
   final int? forumId;
 
@@ -136,7 +136,7 @@ class Discussion {
     required this.dateTimeParsed,
     required this.replies,
     required this.repliesUnread,
-    required this.linkId,
+    required this.link,
     required this.postsUpdateTime,
     this.forumId
   });
@@ -151,7 +151,7 @@ class Discussion {
       'dateTimeParsed': dateTimeParsed,
       'replies': replies,
       'repliesUnread': repliesUnread,
-      'linkId': linkId,
+      'link': link,
       'postsUpdateTime': postsUpdateTime,
       'forumId': forumId
     };
@@ -165,7 +165,7 @@ class Discussion {
     dateTimeParsed: map['dateTimeParsed'],
     replies: map['replies'],
     repliesUnread: map['repliesUnread'],
-    linkId: map['linkId'],
+    link: map['link'],
     postsUpdateTime: map['postsUpdateTime'],
     forumId: map['forumId']
   );
@@ -173,7 +173,7 @@ class Discussion {
 
 class Post {
   final int? id;
-  final String linkId;
+  final String link;
   final String dateTime;
   final String author;
   final String title;
@@ -182,7 +182,7 @@ class Post {
 
   Post({
     this.id,
-    required this.linkId,
+    required this.link,
     required this.dateTime,
     required this.author,
     required this.title,
@@ -193,7 +193,7 @@ class Post {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'linkId': linkId,
+      'link': link,
       'dateTime': dateTime,
       'author': author,
       'title': title,
@@ -203,7 +203,7 @@ class Post {
   }
   factory Post.fromMap(Map<String, dynamic> map) => new Post(
     id: map['id'],
-    linkId: map['linkId'],
+    link: map['link'],
     dateTime: map['dateTime'],
     author: map['author'],
     title: map['title'],
@@ -214,8 +214,8 @@ class Post {
 
 class Event {
   final int? id;
-  final String linkId;
-  final String type;
+  final String link;
+  final String title;
   final String dateTime;
   final String dateTimeParsed;
   final String webex;
@@ -224,8 +224,8 @@ class Event {
 
   Event({
     this.id,
-    required this.linkId,
-    required this.type,
+    required this.link,
+    required this.title,
     required this.dateTime,
     required this.dateTimeParsed,
     required this.webex,
@@ -236,8 +236,8 @@ class Event {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'linkId': linkId,
-      'type': type,
+      'link': link,
+      'title': title,
       'dateTime': dateTime,
       'dateTimeParsed': dateTimeParsed,
       'webex': webex,
@@ -247,8 +247,8 @@ class Event {
   }
   factory Event.fromMap(Map<String, dynamic> map) => new Event(
     id: map['id'],
-    linkId: map['linkId'],
-    type: map['type'],
+    link: map['link'],
+    title: map['title'],
     dateTime: map['dateTime'],
     dateTimeParsed: map['dateTimeParsed'],
     webex: map['webex'],
@@ -257,36 +257,36 @@ class Event {
   );
 }
 
-class Grade {
+class Assign {
   final int? id;
-  final String assign;
+  final String title;
   final String grade;
-  final String linkId;
+  final String link;
   final int? courseId;
 
 
-  Grade({
+  Assign({
     this.id,
-    required this.assign,
+    required this.title,
     required this.grade,
-    required this.linkId,
+    required this.link,
     this.courseId
   });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'assign': assign,
+      'title': title,
       'grade': grade,
-      'linkId': linkId,
+      'link': link,
       'courseId': courseId
     };
   }
-  factory Grade.fromMap(Map<String, dynamic> map) => new Grade(
+  factory Assign.fromMap(Map<String, dynamic> map) => new Assign(
     id: map['id'],
-    assign: map['assign'],
+    title: map['title'],
     grade: map['grade'],
-    linkId: map['linkId'],
+    link: map['link'],
     courseId: map['courseId']
   );
 }

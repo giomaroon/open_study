@@ -36,7 +36,7 @@ class _PostsPageState extends State<PostsPage> {
         postList=_postList;
       });
       var study = HttpServices();
-      var html = await study.getHtml(widget.discussion!.linkId);
+      var html = await study.getHtml(widget.discussion!.link);
       if (html!=null) {
         _postList=study.getPosts(html, widget.discussion!.id!);
         await db.updateDB(newData: _postList, whereId: 'discussionId', id: widget.discussion!.id!);

@@ -141,14 +141,14 @@ class _EventsPageState extends State<EventsPage> {
                             Row(
                               children: [
                                 Icon(
-                                  e.type.substring(0,3)=='ΟΣΣ'
+                                  e.title.substring(0,3)=='ΟΣΣ'
                                   ? Icons.school
                                   : Icons.assignment_outlined,
                                   color: Colors.grey[800],
                                 ),
                                 SizedBox(width: 8,),
                                 Expanded(
-                                  child: Text(e.type,
+                                  child: Text(e.title,
                                     style: TextStyle(
                                       color: Colors.grey[800],
                                       fontSize: 18,

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gio_app/Pages/EventsPage.dart';
-import 'package:gio_app/Pages/GradesPage.dart';
+import 'package:gio_app/Pages/AssignsPage.dart';
 import 'package:gio_app/Pages/PostsPage.dart';
 import 'package:gio_app/Services/NotificationServices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,7 +64,7 @@ class MyApp extends StatelessWidget {
           '/': (_) => HomePage(),
           '/EventsPage': (_) => EventsPage(),
           '/PostsPage': (_) => PostsPage(payloadDiscussionId: payload.split(' ')[0]),
-          '/GradesPage': (_) => GradesPage(payloadCourseId: payload.split(' ')[0]),
+          '/AssignsPage': (_) => AssignsPage(payloadCourseId: payload.split(' ')[0]),
         }
     );
   }
