@@ -15,8 +15,6 @@ void callbackDispatcher() {
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
         var study = HttpServices();
-        //var moodleSession = await study.reConnect(activeUserId);
-        //if (moodleSession=='no connection') {break;}
         var html = await study.getHtml('https://study.eap.gr/my/');
         if (html!=null) {
           var eventList = study.getEvents(html, activeUserId);
@@ -32,13 +30,10 @@ void callbackDispatcher() {
               if (event.notificationId==0 && event.dateTimeParsed!='null') {
                 var eventDateTime=DateTime.parse(event.dateTimeParsed);
                 eventDateTime=eventDateTime.subtract(Duration(hours: 2));
-                //print(eventDateTime);
                 var now=DateTime.now();
                 if (now.isBefore(eventDateTime) &&
                     now.isAfter(eventDateTime.subtract(Duration(days: 2)))) {
-                  var notifId=now.millisecond!=0
-                      ? now.millisecond
-                      : now.millisecond+1;
+                  var notifId=now.millisecond+1;
                   await notificationServices.showNotificationScheduled(
                       id: notifId+200,
                       title: event.dateTime,
@@ -50,8 +45,7 @@ void callbackDispatcher() {
                   await dbase.update('Event', {'notificationId': notifId},
                       where: 'link=? AND userId=?',
                       whereArgs: [event.link, activeUserId]);
-                  //print('notification with id: '+notificationId.toString());
-                } //else { print('dateTime too ealy for notification');}
+                }
               }
             }
           }
@@ -60,13 +54,10 @@ void callbackDispatcher() {
         break;
       case 'post':
         HttpOverrides.global = new MyHttpOverrides();
-        //print('start');
         SharedPreferences prefs = await SharedPreferences.getInstance();
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
         var study = HttpServices();
-        //var moodleSession = await study.reConnect(activeUserId);
-        //if (moodleSession=='no connection') {break;}
         var html = await study.getHtml('https://study.eap.gr/my/');
         if (html!=null) {
           var courseList = study.getCourses(html, activeUserId);
@@ -139,8 +130,6 @@ void callbackDispatcher() {
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
         var study = HttpServices();
-        //var moodleSession = await study.reConnect(activeUserId);
-        //if (moodleSession=='no connection') {break;}
         var html = await study.getHtml('https://study.eap.gr/my/');
         if (html!=null) {
           var courseList = study.getCourses(html, activeUserId);
@@ -176,7 +165,6 @@ void callbackDispatcher() {
                   if (html != null) {
                     var grade = study.getGrade(html);
                     if (grade != '') {
-                      //print('new grade: '+grade);
                       await dbase.update('Assign', {'grade': grade},
                           where: 'link=? AND courseId=?',
                           whereArgs: [e.link, course.id]);
@@ -187,15 +175,12 @@ void callbackDispatcher() {
                             body: e.title + ': ' + grade,
                             payload: course.id.toString() + ' ' + '/AssignsPage'
                         );
-                        //print('notification with id: '+notifId.toString());
                         ++notifId;
                       }
                     } else if (grade == '') {
-                      //print('no grade left, break');
                       break;
                     }
                   } else {
-                    //print('http error, break');
                     break;
                   }
                 }
@@ -228,7 +213,6 @@ Future<void> activateEventNotifications(bool on, int userId) async {
         whereArgs: [userId]);
     for (var el in notificationIdsListMap) {
       if (el['notificationId']!=0) {
-        //await notificationServices.notifications.cancel(el['notificationId']??0);
         await dbase.update('Event',
             {'notificationId':0},
             where: 'id=?',
@@ -236,25 +220,13 @@ Future<void> activateEventNotifications(bool on, int userId) async {
       }
     }
   }
-  // await dbase.update('User',
-  //     {'eventNotification': on? 1: 0},
-  //     where: 'id=?',
-  //     whereArgs: [userId]);
-  //var newuser=await DBServices.instance.getUser(id: userId);
-  //print(newuser.toMap());
 }
 
 Future<void> activatePostNotifications({required int time}) async {
   await Workmanager().cancelByUniqueName('2');
-  print('cancel workmanage');
+  print('cancel post notif');
   if (time!=0) {
-    print('workmanager: '+time.toString());
-    // await notificationServices.showNotification(
-    //     id: 3,
-    //     title: 'λαλα',
-    //     body: 'μπλα',
-    //     payload: '1'+' '+'/PostsPage'
-    // );
+    print('post notif is on: '+time.toString());
     await Workmanager().registerPeriodicTask(
         '2',
         'post',
@@ -262,42 +234,7 @@ Future<void> activatePostNotifications({required int time}) async {
         frequency: Duration(hours: time)
     );
   }
-  // else {
-  //   print('cancel');
-  //   await Workmanager().cancelByUniqueName('2');
-  // }
-  // var dbase= await DBServices.instance.database;
-  // await dbase.update('User',
-  //     {'postNotification': time},
-  //     where: 'id=?',
-  //     whereArgs: [userId]);
 }
-
-// Future<void> activatePostNotifications(bool on, int userId,{int? hours}) async {
-//   if (on==true) {
-//     // await notificationServices.showNotification(
-//     //     id: 3,
-//     //     title: 'λαλα',
-//     //     body: 'μπλα',
-//     //     payload: '1'+' '+'/PostsPage'
-//     // );
-//     await Workmanager().registerPeriodicTask(
-//       '2',
-//       'post',
-//       initialDelay: Duration(seconds: 10), //minutes: 1),
-//       frequency: Duration(hours: hours??4)
-//     );
-//   } else {
-//     await Workmanager().cancelByUniqueName('2');
-//   }
-//   var dbase= await DBServices.instance.database;
-//   await dbase.update('User',
-//       {'postNotification': on? 1: 0},
-//       where: 'id=?',
-//       whereArgs: [userId]);
-// }
-
-
 
 Future<void> activateGradeNotifications(bool on) async {
   if (on==true) {
@@ -310,10 +247,5 @@ Future<void> activateGradeNotifications(bool on) async {
   } else {
     await Workmanager().cancelByUniqueName('3');
   }
-  // var dbase= await DBServices.instance.database;
-  // await dbase.update('User',
-  //     {'gradeNotification': on? 1: 0},
-  //     where: 'id=?',
-  //     whereArgs: [userId]);
 }
 

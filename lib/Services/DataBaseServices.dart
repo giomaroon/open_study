@@ -185,7 +185,7 @@ class DBServices {
     }
   }
 
-  Future<int> updateUser(User user) async {
+  Future<int> updateUserSetNotif(User user) async {
     var userId;
     bool eventNotifOn=true;
     int postNotifTime=8;
@@ -251,7 +251,6 @@ class DBServices {
     Database db = await instance.database;
     if (_newData.isEmpty || id==null) {
       return 0;
-      //print('list is null or empty or id null');
     } else {
       var table = _newData[0].runtimeType.toString();
       //print(table);
@@ -269,7 +268,6 @@ class DBServices {
             await db.delete(table, where: 'link=? AND $whereId=?', whereArgs: [el['link'], id]);
           } else {
             if (table=='Forum') {
-              //print('b');
               var newDataItemList=_newData.where((element) => element.link==el['link']).toList();
               if (newDataItemList.isNotEmpty) {
                     await db.update(table, {'unread': newDataItemList[0].unread},
@@ -279,7 +277,6 @@ class DBServices {
             _newData.removeWhere((item) => item.link == el['link']);
           }
         }
-        //print(list.map((e) => e.toMap()));
         if (_newData.isNotEmpty) {
           for (int i = 0; i < _newData.length; i++) {
             rows=await db.insert(table, _newData[i].toMap());
@@ -352,66 +349,63 @@ class DBServices {
     return await db.delete(table, where: '$column = ?', whereArgs: [id]);
   }
 
-  // TODO delete this (not used)
-  Future<int> removeAll(String table) async {
-    Database db = await instance.database;
-    return await db.delete(table);
-  }
+  // Future<int> removeAll(String table) async {
+  //   Database db = await instance.database;
+  //   return await db.delete(table);
+  // }
 
-  Future<List<Course>> getCourses() async {
-    Database db = await instance.database;
-    var courses = await db.query('Course');
-    List<Course> coursesList = courses.isNotEmpty
-        ? courses.map((c) => Course.fromMap(c)).toList()
-        : [];
-    return coursesList;
-  }
-
-  Future<List<Forum>> getForums() async {
-    Database db = await instance.database;
-    var forums = await db.query('Forum');
-    List<Forum> forumsList = forums.isNotEmpty
-        ? forums.map((c) => Forum.fromMap(c)).toList()
-        : [];
-    return forumsList;
-  }
-
-  Future<List<Discussion>> getDiscuccions() async {
-    Database db = await instance.database;
-    var rows = await db.query('Discussion');
-    List<Discussion> list = rows.isNotEmpty
-        ? rows.map((c) => Discussion.fromMap(c)).toList()
-        : [];
-    return list;
-  }
-
-  Future<List<Post>> getPosts() async {
-    Database db = await instance.database;
-    var rows = await db.query('Post');
-    List<Post> list = rows.isNotEmpty
-        ? rows.map((c) => Post.fromMap(c)).toList()
-        : [];
-    return list;
-  }
-
-  Future<List<Event>> getEvents() async {
-    Database db = await instance.database;
-    var rows = await db.query('Event');
-    List<Event> list = rows.isNotEmpty
-        ? rows.map((c) => Event.fromMap(c)).toList()
-        : [];
-    return list;
-  }
-
-  Future<List<Assign>> getAssigns() async {
-    Database db = await instance.database;
-    var rows = await db.query('Assign');
-    List<Assign> list = rows.isNotEmpty
-        ? rows.map((c) => Assign.fromMap(c)).toList()
-        : [];
-    return list;
-  }
-
-
+  // Future<List<Course>> getCourses() async {
+  //   Database db = await instance.database;
+  //   var courses = await db.query('Course');
+  //   List<Course> coursesList = courses.isNotEmpty
+  //       ? courses.map((c) => Course.fromMap(c)).toList()
+  //       : [];
+  //   return coursesList;
+  // }
+  //
+  // Future<List<Forum>> getForums() async {
+  //   Database db = await instance.database;
+  //   var forums = await db.query('Forum');
+  //   List<Forum> forumsList = forums.isNotEmpty
+  //       ? forums.map((c) => Forum.fromMap(c)).toList()
+  //       : [];
+  //   return forumsList;
+  // }
+  //
+  // Future<List<Discussion>> getDiscuccions() async {
+  //   Database db = await instance.database;
+  //   var rows = await db.query('Discussion');
+  //   List<Discussion> list = rows.isNotEmpty
+  //       ? rows.map((c) => Discussion.fromMap(c)).toList()
+  //       : [];
+  //   return list;
+  // }
+  //
+  // Future<List<Post>> getPosts() async {
+  //   Database db = await instance.database;
+  //   var rows = await db.query('Post');
+  //   List<Post> list = rows.isNotEmpty
+  //       ? rows.map((c) => Post.fromMap(c)).toList()
+  //       : [];
+  //   return list;
+  // }
+  //
+  // Future<List<Event>> getEvents() async {
+  //   Database db = await instance.database;
+  //   var rows = await db.query('Event');
+  //   List<Event> list = rows.isNotEmpty
+  //       ? rows.map((c) => Event.fromMap(c)).toList()
+  //       : [];
+  //   return list;
+  // }
+  //
+  // Future<List<Assign>> getAssigns() async {
+  //   Database db = await instance.database;
+  //   var rows = await db.query('Assign');
+  //   List<Assign> list = rows.isNotEmpty
+  //       ? rows.map((c) => Assign.fromMap(c)).toList()
+  //       : [];
+  //   return list;
+  // }
 
 }

@@ -39,14 +39,14 @@ void main() async {
   //..... check if app is launched by notification and set initialRoute.......
 
   payload = await notificationServices.getLaunchAppPayload();
-  //print('main payload : '+payload.toString());
+
   if (activeUserId==0) {
     initialRoute='LoginPage';
   } else if (payload==null) {
     initialRoute='/';
   } else if (payload.split(' ').length==2){
     initialRoute = payload.split(' ')[1];
-    //payload='';
+
   }
 
   runApp(MyApp());

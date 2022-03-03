@@ -23,9 +23,6 @@ class _LoginPageState extends State<LoginPage> {
   String password='';
   String studentName='';
   String authResultMessage='';
-  // List<Course>? courseList;
-  // List<Event>? eventList;
-  //var user;
   var userId;
   bool loading = false;
   bool passwordObscure=true;
@@ -73,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
           eventsUpdateTime: '');
 
       var db=DBServices.instance;
-      userId = await db.updateUser(user);
+      userId = await db.updateUserSetNotif(user);
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setInt('userId', userId);
@@ -92,6 +89,9 @@ class _LoginPageState extends State<LoginPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setInt('userId', userId);
       activeUserId=userId;
+      var db=DBServices.instance;
+      var user = await db.getUser(id: activeUserId);
+      await db.updateUserSetNotif(user);
       Navigator.pushReplacement(context, MaterialPageRoute(
           builder: (context) => HomePage(
               html: html)));
