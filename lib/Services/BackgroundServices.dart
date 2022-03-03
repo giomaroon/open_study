@@ -216,7 +216,7 @@ Future<void> activateEventNotifications(bool on, int userId) async {
     await Workmanager().registerPeriodicTask(
       '1',
       'event',
-      initialDelay: Duration(minutes: 2),
+      initialDelay: Duration(minutes: 5),
       frequency: Duration(hours: 12)
     );
   } else {
@@ -236,60 +236,84 @@ Future<void> activateEventNotifications(bool on, int userId) async {
       }
     }
   }
-  await dbase.update('User',
-      {'eventNotification': on? 1: 0},
-      where: 'id=?',
-      whereArgs: [userId]);
+  // await dbase.update('User',
+  //     {'eventNotification': on? 1: 0},
+  //     where: 'id=?',
+  //     whereArgs: [userId]);
   //var newuser=await DBServices.instance.getUser(id: userId);
   //print(newuser.toMap());
 }
 
-Future<void> activatePostNotifications(bool on, int userId,{int? hours}) async {
-  if (on==true) {
+Future<void> activatePostNotifications({required int time}) async {
+  await Workmanager().cancelByUniqueName('2');
+  print('cancel workmanage');
+  if (time!=0) {
+    print('workmanager: '+time.toString());
     // await notificationServices.showNotification(
     //     id: 3,
     //     title: 'λαλα',
     //     body: 'μπλα',
     //     payload: '1'+' '+'/PostsPage'
     // );
-    // await Future.delayed(Duration(seconds: 2));
-    // await notificationServices.showNotification(
-    //     id: 4,
-    //     title: 'λαλα2',
-    //     body: 'μπλα2',
-    //     payload: '2'+' '+'/PostsPage'
-    // );
     await Workmanager().registerPeriodicTask(
-      '2',
-      'post',
-      initialDelay: Duration(minutes: 1),
-      frequency: Duration(hours: hours??4)
+        '2',
+        'post',
+        initialDelay: Duration(minutes: 10),
+        frequency: Duration(hours: time)
     );
-  } else {
-    await Workmanager().cancelByUniqueName('2');
   }
-  var dbase= await DBServices.instance.database;
-  await dbase.update('User',
-      {'postNotification': on? 1: 0},
-      where: 'id=?',
-      whereArgs: [userId]);
+  // else {
+  //   print('cancel');
+  //   await Workmanager().cancelByUniqueName('2');
+  // }
+  // var dbase= await DBServices.instance.database;
+  // await dbase.update('User',
+  //     {'postNotification': time},
+  //     where: 'id=?',
+  //     whereArgs: [userId]);
 }
 
-Future<void> activateGradeNotifications(bool on, int userId) async {
+// Future<void> activatePostNotifications(bool on, int userId,{int? hours}) async {
+//   if (on==true) {
+//     // await notificationServices.showNotification(
+//     //     id: 3,
+//     //     title: 'λαλα',
+//     //     body: 'μπλα',
+//     //     payload: '1'+' '+'/PostsPage'
+//     // );
+//     await Workmanager().registerPeriodicTask(
+//       '2',
+//       'post',
+//       initialDelay: Duration(seconds: 10), //minutes: 1),
+//       frequency: Duration(hours: hours??4)
+//     );
+//   } else {
+//     await Workmanager().cancelByUniqueName('2');
+//   }
+//   var dbase= await DBServices.instance.database;
+//   await dbase.update('User',
+//       {'postNotification': on? 1: 0},
+//       where: 'id=?',
+//       whereArgs: [userId]);
+// }
+
+
+
+Future<void> activateGradeNotifications(bool on) async {
   if (on==true) {
     await Workmanager().registerPeriodicTask(
       '3',
       'grade',
-      initialDelay: Duration(minutes: 3),
+      initialDelay: Duration(minutes: 15),
       frequency: Duration(hours: 24)
     );
   } else {
     await Workmanager().cancelByUniqueName('3');
   }
-  var dbase= await DBServices.instance.database;
-  await dbase.update('User',
-      {'gradeNotification': on? 1: 0},
-      where: 'id=?',
-      whereArgs: [userId]);
+  // var dbase= await DBServices.instance.database;
+  // await dbase.update('User',
+  //     {'gradeNotification': on? 1: 0},
+  //     where: 'id=?',
+  //     whereArgs: [userId]);
 }
 

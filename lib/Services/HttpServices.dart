@@ -160,6 +160,54 @@ class HttpServices {
 
     return html;
   }
+  Future<Document?> getHtml(String link, {String? moodleSession}) async {
+    Document? html;
+    print('getting html....');
+    var url=Uri.parse(link);
+    if (moodleSession==null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      moodleSession = prefs.getString('moodleSession') ?? '';
+    }
+    var cookie = { 'Cookie' : ' $moodleSession; '};
+    var response;
+    // try get html with storef moodlSession
+    try {
+      response = await get(url, headers: cookie);
+      // if moodleSession is old, throws exception: loop redirect
+      html = parse(response.body);
+      print('html got');
+      return html;
+    } catch(err) {
+      print('getHtml fail');
+      print(err);
+    }
+    // if response is null or redirected to login page then
+    // reconnect, get new moodleSession and get html
+    if (response==null || response.headers['location'] == loginLink) {
+      print('get html reconnecting...');
+      try {
+        moodleSession=await reConnect(activeUserId);
+        if (moodleSession!='no connection' && moodleSession!='no user') {
+          cookie = { 'Cookie' : ' $moodleSession; '};
+          response = await get(url, headers: cookie);
+          if (response.headers['location'] == loginLink) {
+            //print('error');
+            return html;
+          } else {
+            html = parse(response.body);
+            print('html got');
+            return html;
+          }
+        } else {
+          return html;
+        }
+      } catch(err) {
+        print('reconnect fail');
+        print(err);
+        return html;
+      }
+    }
+  }
 
   Future<String> reConnect(int? userId) async {
     Map<String, String> cookie={};
@@ -210,55 +258,6 @@ class HttpServices {
     } catch(err) {
       print(err);
       return noConnection;
-    }
-  }
-
-  Future<Document?> getHtml(String link, {String? moodleSession}) async {
-    Document? html;
-    print('getting html....');
-    var url=Uri.parse(link);
-    if (moodleSession==null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      moodleSession = prefs.getString('moodleSession') ?? '';
-    }
-    var cookie = { 'Cookie' : ' $moodleSession; '};
-    var response;
-    // try get html with storef moodlSession
-    try {
-      response = await get(url, headers: cookie);
-      // if moodleSession is old, throws exception: loop redirect
-      html = parse(response.body);
-      print('html got');
-      return html;
-    } catch(err) {
-      print('getHtml fail');
-      print(err);
-    }
-    // if response is null or redirected to login page then
-    // reconnect, get new moodleSession and get html
-    if (response==null || response.headers['location'] == loginLink) {
-      print('get html reconnecting...');
-      try {
-        moodleSession=await reConnect(activeUserId);
-        if (moodleSession!='no connection' && moodleSession!='no user') {
-          cookie = { 'Cookie' : ' $moodleSession; '};
-          response = await get(url, headers: cookie);
-          if (response.headers['location'] == loginLink) {
-            //print('error');
-            return html;
-          } else {
-            html = parse(response.body);
-            print('html got');
-            return html;
-          }
-        } else {
-          return html;
-        }
-      } catch(err) {
-        print('reconnect fail');
-        print(err);
-        return html;
-      }
     }
   }
 

@@ -19,31 +19,32 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
 
-  bool eventNotification=false;
-  bool postNotification=false;
-  bool gradeNotification=false;
+  bool eventNotif=false;
+  //bool postNotification=false; //TODO int
+  bool gradeNotif=false;
+  int postNotifTime=0;
   //bool value = true;
   User? user;
   var db=DBServices.instance;
-  double hours=0;
+  //double value=0;
+  Map<int,int> valueFromTime={0:0,4:1,8:2,12:3,24:4};
 
   Future<void> getUserSettings() async {
     user = await db.getUser(id: activeUserId);
-  eventNotification=user!.eventNotification==1
-      ? true
-      : false;
-  postNotification=user!.postNotification==1
-      ? true
-      : false;
-  gradeNotification=user!.gradeNotification==1
-      ? true
-      : false;
-  setState(() { });
+    //print(user!.toMap());
+    eventNotif=user!.eventNotification==1
+        ? true
+        : false;
+    postNotifTime=user!.postNotification;
+    // postNotification=user!.postNotification==1
+    //     ? true
+    //     : false;
+    gradeNotif=user!.gradeNotification==1
+        ? true
+        : false;
+    setState(() { });
   }
 
-  void postNoitificationHours() {
-
-  }
 
   @override
   void initState() {
@@ -102,38 +103,48 @@ class _SettingsPageState extends State<SettingsPage> {
                   indent: 20,
                   endIndent: 20,
                 ),
-                SwitchListTile(
-                    activeColor: Color(0xFFCF118C),
-                    tileColor: Colors.white,
-                    title: Row(
-                      children: [
-                        SizedBox(width: 6),
-                        Text('Νέες δημοσιεύσεις',
-                          style: TextStyle(
-                              fontSize: 18
-                          ),),
-                      ],
-                    ),
-                    value: postNotification,
-                    onChanged: (val) async {
-                      setState (() { postNotification = val; });
-                      await activatePostNotifications(val, user!.id!);
-                    }
-                ),
+                // SwitchListTile(
+                //     activeColor: Color(0xFFCF118C),
+                //     tileColor: Colors.white,
+                //     title: Row(
+                //       children: [
+                //         SizedBox(width: 6),
+                //         Text('Νέες δημοσιεύσεις',
+                //           style: TextStyle(
+                //               fontSize: 18
+                //           ),),
+                //       ],
+                //     ),
+                //     value: postNotification,
+                //     onChanged: (val) async {
+                //       setState (() { postNotification = val; });
+                //       await activatePostNotifications(val, user!.id!);
+                //     }
+                // ),
                 Container(
                   color: Colors.white,
                   child: Column(
                     children: [
+                      SizedBox(height: 8),
                       Row(
                         children: [
                           SizedBox(width: 22),
-                          Text('Νέες δημοσιεύσεις',
+                          Text('Νέες δημοσιεύσεις ανά:  ',
                             style: TextStyle(
                                 fontSize: 18
                             ),
                           ),
-                          SizedBox(width: 22),
-                          Text(hours.round().toString(),
+                          // SizedBox(width: 22),
+                          Text(postNotifTime==0
+                              ? '-'
+                              : postNotifTime.toString(),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold
+
+                            ),
+                          ),
+                          Text('  ώρες',
                             style: TextStyle(
                                 fontSize: 18
                             ),
@@ -141,20 +152,35 @@ class _SettingsPageState extends State<SettingsPage> {
                         ],
                       ),
                       Container(
-                        padding: EdgeInsets.fromLTRB(14,4,14,4),
+                        padding: EdgeInsets.fromLTRB(14,4,10,4),
                         child: Slider(
                           min: 0,
-                          max: 5,
-                          divisions: 5,
-                          value: hours,
+                          max: 4,
+                          divisions: 4,
+                          value: valueFromTime[postNotifTime]!.toDouble(),
                           //label: hours.round().toString(),
-                          onChanged: (val) {
+                          onChanged: (a) {
+                            //print(postNotificationTime);
                             setState(() {
-                              hours=val;
-                              print(hours);
+                              postNotifTime=(4*a+a*(a-1)*(a-2)*(a-3)/3).toInt();
+                              //postNotificationTime=a.toInt();
                             });
                           },
+                          onChangeEnd: (a) async {
+                            print('done');
+                            print(postNotifTime);
+                            await activatePostNotifications(time: postNotifTime);
+                            var dbase= await db.database;
+                            await dbase.update('User',
+                                {'postNotification': postNotifTime,},
+                                where: 'id=?',
+                                whereArgs: [user!.id!]);
+
+                          },
                           activeColor: Color(0xFFCF118C),
+                          thumbColor: postNotifTime==0
+                            ? Colors.grey[400]
+                            : Color(0xFFCF118C),
                           inactiveColor: Colors.grey[200],
                         ),
                       ),
@@ -180,10 +206,15 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),),
                       ],
                     ),
-                    value: eventNotification,
+                    value: eventNotif,
                     onChanged: (val) async {
-                      setState (() { eventNotification = val; });
+                      setState (() { eventNotif = val; });
                       await activateEventNotifications(val, user!.id!);
+                      var dbase= await db.database;
+                      await dbase.update('User',
+                          {'eventNotification': val? 1: 0},
+                          where: 'id=?',
+                          whereArgs: [user!.id!]);
                     }
                 ),
                 Divider(
@@ -204,10 +235,15 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),),
                       ],
                     ),
-                    value: gradeNotification,
+                    value: gradeNotif,
                     onChanged: (val) async {
-                      setState (() { gradeNotification = val; });
-                      await activateGradeNotifications(val, user!.id!);
+                      setState (() { gradeNotif = val; });
+                      await activateGradeNotifications(val);
+                      var dbase= await db.database;
+                      await dbase.update('User',
+                          {'gradeNotification': val? 1: 0},
+                          where: 'id=?',
+                          whereArgs: [user!.id!]);
                     }
                 ),
               ],
@@ -263,8 +299,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder:
                                           (context) => LoginPage()), (route) => false);
                                       await activateEventNotifications(false, user!.id!);
-                                      await activatePostNotifications(false, user!.id!);
-                                      await activateGradeNotifications(false, user!.id!);
+                                      await activatePostNotifications(time: 0);
+                                      await activateGradeNotifications(false);
                                       await db.removeAllById('User', column: 'id', id: activeUserId);
                                       SharedPreferences prefs = await SharedPreferences.getInstance();
                                       await prefs.setInt('userId', 0);
@@ -314,8 +350,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder:
                           (context) => LoginPage()), (route) => false);
                       await activateEventNotifications(false, user!.id!);
-                      await activatePostNotifications(false, user!.id!);
-                      await activateGradeNotifications(false, user!.id!);
+                      await activatePostNotifications(time: 0);
+                      await activateGradeNotifications(false);
                       SharedPreferences prefs = await SharedPreferences.getInstance();
                       await prefs.setInt('userId', 0);
                     },

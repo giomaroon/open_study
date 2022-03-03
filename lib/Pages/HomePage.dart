@@ -55,7 +55,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    print('homepage init');
+    //print('homepage init');
     getUserStudyHtml();
     //notificationServices.initializeNotifications();
     notificationServices.requestIOSPermissions();
@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    print('homepage dispose');
+    //print('homepage dispose');
     notificationServices.streamNotification.close();
     notificationServices.streamNotificationIOS.close();
     super.dispose();
@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    print('homepage');
+    //print('homepage');
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(

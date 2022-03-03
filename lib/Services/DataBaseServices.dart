@@ -188,14 +188,12 @@ class DBServices {
   Future<int> updateUser(User user) async {
     var userId;
     bool eventNotifOn=true;
-    bool postNotifOn=true;
+    int postNotifTime=8;
     bool gradeNotifOn=true;
     bool userExists=false;
     Database db = await instance.database;
     var usersDBListMap = await db.query('User');
     if (usersDBListMap.isNotEmpty) {
-      //List<User> usersDBList = rows.map((c) => User.fromMap(c)).toList();
-      //var usersDBusernameList = usersDBList.map((e) => e.username).toList();
       for (var userDB in usersDBListMap) {
         // check if user exists....
         if (userDB['username'] == user.username) {
@@ -208,18 +206,26 @@ class DBServices {
               whereArgs: [userDB['id']]);
 
           eventNotifOn=userDB['eventNotification']==1? true: false;
-          postNotifOn=userDB['postNotification']==1? true: false;
+          postNotifTime=userDB['postNotification'] as int;
           gradeNotifOn=userDB['gradeNotification']==1? true: false;
           userId = userDB['id'];
-        } break;
+        }
+        break;
       }
     }
     if (!userExists) {
       userId = await db.insert('User', user.toMap());
     }
     await activateEventNotifications(eventNotifOn, userId);
-    await activatePostNotifications(postNotifOn, userId);
-    await activateGradeNotifications(gradeNotifOn, userId);
+    await activatePostNotifications(time: postNotifTime);
+    await activateGradeNotifications(gradeNotifOn);
+    //var dbase= await db.database;
+    await db.update('User',
+        {'eventNotification': eventNotifOn? 1: 0,
+         'postNotification': postNotifTime,
+         'gradeNotification': gradeNotifOn? 1: 0},
+        where: 'id=?',
+        whereArgs: [userId]);
     return userId;
   }
 

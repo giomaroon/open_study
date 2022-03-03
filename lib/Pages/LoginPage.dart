@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
           password: password,
           studentName: studentName,
           eventNotification: 1,
-          postNotification: 1,
+          postNotification: 8,
           gradeNotification: 1,
           eventsUpdateTime: '');
 
