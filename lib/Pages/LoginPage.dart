@@ -49,6 +49,65 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // Future<void> loginProcedureOld(BuildContext context) async {
+  //   Document? html;
+  //   setState(() {
+  //     loading=true;
+  //   });
+  //   // call httpLogin and return auth result and html of study.gr/my
+  //   var study=HttpServices();
+  //   var loginResult = await study.loginStudy(username, password);
+  //   print(loginResult);
+  //
+  //   if (loginResult is Document) {
+  //     // get student name, create User, update DB, store activeUserId and push HomePage(html)
+  //     html=loginResult;
+  //     var studentName = html.getElementsByClassName('usertext mr-1').isNotEmpty
+  //         ? html.getElementsByClassName('usertext mr-1')[0].text
+  //         :'';
+  //     var user=User(
+  //         username: username,
+  //         password: password,
+  //         studentName: studentName,
+  //         eventNotification: 1,
+  //         postNotification: 8,
+  //         gradeNotification: 1,
+  //         eventsUpdateTime: '');
+  //
+  //     var db=DatabaseServices.instance;
+  //     userId = await db.updateUserSetNotif(user);
+  //
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     await prefs.setInt('userId', userId);
+  //     activeUserId=userId;
+  //
+  //     Navigator.pushReplacement(context, MaterialPageRoute(
+  //         builder: (context) => HomePage(html: html)));
+  //
+  //   } else if (loginResult=='no user'){
+  //     setState(() {
+  //       authResultMessage = 'λάθος στοιχεία'; //TODO  'αποτυχία σύνδεσης'
+  //       print(authResultMessage);
+  //       loading = false;
+  //     });
+  //   } else if (userExists){
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     await prefs.setInt('userId', userId);
+  //     activeUserId=userId;
+  //     var db=DatabaseServices.instance;
+  //     var user = await db.getUser(id: activeUserId);
+  //     await db.updateUserSetNotif(user);
+  //     Navigator.pushReplacement(context, MaterialPageRoute(
+  //         builder: (context) => HomePage(
+  //             html: html)));
+  //   } else {
+  //     setState(() {
+  //       authResultMessage = 'αδυναμία σύνδεσης';
+  //       loading = false;
+  //     });
+  //   }
+  // }
+
   Future<void> loginProcedure(BuildContext context) async {
     Document? html;
     setState(() {
@@ -58,13 +117,39 @@ class _LoginPageState extends State<LoginPage> {
     var study=HttpServices();
     var loginResult = await study.loginStudy(username, password);
     print(loginResult);
-
-    if (loginResult is Document) {
+    if (loginResult=='no user'){
+      setState(() {
+        authResultMessage = 'αποτυχία σύνδεσης';
+        print(authResultMessage);
+        loading = false;
+      });
+    } else if (loginResult=='no connection') {
+      if (userExists){
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('userId', userId);
+        activeUserId=userId;
+        var db=DatabaseServices.instance;
+        var user = await db.getUser(id: activeUserId);
+        await db.updateUserSetNotif(user);
+        Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) => HomePage(
+                html: html)));
+      } else {
+        setState(() {
+          authResultMessage = 'αδυναμία σύνδεσης';
+          loading = false;
+        });
+      }
+    } else {
+      html = await study.getHtml('https://study.eap.gr/my/', moodleSession: loginResult);
       // get student name, create User, update DB, store activeUserId and push HomePage(html)
-      html=loginResult;
-      var studentName = html.getElementsByClassName('usertext mr-1').isNotEmpty
-          ? html.getElementsByClassName('usertext mr-1')[0].text
-          :'';
+      String studentName='';
+      try {
+        studentName = html!.getElementsByClassName('usertext mr-1')[0].text;
+      } catch (err) {
+        print(err);
+      }
+
       var user=User(
           username: username,
           password: password,
@@ -84,27 +169,6 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushReplacement(context, MaterialPageRoute(
           builder: (context) => HomePage(html: html)));
 
-    } else if (loginResult=='no user'){
-      setState(() {
-        authResultMessage = 'λάθος στοιχεία'; //TODO  'αποτυχία σύνδεσης'
-        print(authResultMessage);
-        loading = false;
-      });
-    } else if (userExists){
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('userId', userId);
-      activeUserId=userId;
-      var db=DatabaseServices.instance;
-      var user = await db.getUser(id: activeUserId);
-      await db.updateUserSetNotif(user);
-      Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context) => HomePage(
-              html: html)));
-    } else {
-      setState(() {
-        authResultMessage = 'αδυναμία σύνδεσης';
-        loading = false;
-      });
     }
   }
 

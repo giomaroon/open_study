@@ -12,7 +12,7 @@ class HttpServices {
   final String noConnection='no connection';
 
   //....  http methods
-  Future<dynamic> loginStudy(String username, String password) async {
+  Future<String> loginStudy(String username, String password) async {
     Document? html;
     Map<String, String> cookie={};
     String moodleSession='';
@@ -56,30 +56,81 @@ class HttpServices {
       return noConnection;
     }
 
-    // (3)....Make new cookie with moodleSession2 and
-    // get everything while statusCode == 200
-    cookie = { 'Cookie' : ' $moodleSession; '};
-    print(cookie);
-    url=Uri.parse('https://study.eap.gr/my/');
-    try {
-      var response = await get(url, headers: cookie);    //
-      print(response.statusCode);
-      //print(response.headers['location']);
-      if (response.headers['location'] == loginLink) {
-        return noConnection;
-      }
-      html = parse(response.body);
-    } catch(err) {
-      print('error');
-      return noConnection;
-    }
-
     // store moodleSession to SherdPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('moodleSession', moodleSession);
 
-    return html;
+    return moodleSession;
   }
+
+  // Future<dynamic> loginStudyOld(String username, String password) async {
+  //   Document? html;
+  //   Map<String, String> cookie={};
+  //   String moodleSession='';
+  //   String? logintoken;
+  //   // (1)...GET: Study/login , moodleSession1, logintoken..............
+  //   var url=Uri.parse(loginLink);
+  //   try {
+  //     var response = await get(url);//.timeout(Duration(seconds: 10));
+  //     print(response.statusCode);
+  //     moodleSession=response.headers['set-cookie'].toString().substring(0,49);
+  //     print(moodleSession);
+  //     html = parse(response.body);
+  //     logintoken=html.getElementsByClassName('modal-body')[0].children[0].children[6].attributes['value'];
+  //     print(logintoken);
+  //   } catch(err) {
+  //     print(err);
+  //     return noConnection;
+  //   }
+  //
+  //   // (2)...POST: Study/login with cookie - moodleSession1 , Get MoodleSession2...
+  //   cookie = { 'Cookie' : '$moodleSession; '};
+  //   print(cookie);
+  //   try {
+  //     var request = Request('POST', url)
+  //       ..headers.addAll(cookie)
+  //       ..bodyFields = {'username': username, 'password' : password,
+  //         'anchor' : '', 'logintoken' : logintoken??''}
+  //       ..followRedirects = false;
+  //     var responseStream = await request.send();
+  //     //print(responseStream.statusCode);
+  //     //print(responseStream.headers);
+  //     //print(responseStream.headers['location']);
+  //     if (responseStream.headers['location'] == loginLink) {
+  //       print('no user');
+  //       return 'no user';
+  //     }
+  //     moodleSession=responseStream.headers['set-cookie'].toString().substring(0,49);
+  //     //print(moodleSession);
+  //   } catch(err) {
+  //     print(err);
+  //     return noConnection;
+  //   }
+  //
+  //   // (3)....Make new cookie with moodleSession2 and
+  //   // get everything while statusCode == 200
+  //   cookie = { 'Cookie' : ' $moodleSession; '};
+  //   print(cookie);
+  //   url=Uri.parse('https://study.eap.gr/my/');
+  //   try {
+  //     var response = await get(url, headers: cookie);    //
+  //     print(response.statusCode);
+  //     //print(response.headers['location']);
+  //     if (response.headers['location'] == loginLink) {
+  //       return noConnection;
+  //     }
+  //     html = parse(response.body);
+  //   } catch(err) {
+  //     print('error');
+  //     return noConnection;
+  //   }
+  //
+  //   // store moodleSession to SherdPreferences
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   await prefs.setString('moodleSession', moodleSession);
+  //
+  //   return html;
+  // }
 
   Future<Document?> getHtml(String link, {String? moodleSession}) async {
     Document? html;
@@ -106,8 +157,13 @@ class HttpServices {
     // reconnect, get new moodleSession and get html
     if (response==null || response.headers['location'] == loginLink) {
       print('get html reconnecting...');
+      if (activeUserId==0) {
+        var prefs = await SharedPreferences.getInstance();
+        activeUserId = prefs.getInt('userId');
+      }
       try {
-        moodleSession=await reconnect(activeUserId);
+        var user = await DatabaseServices.instance.getUser(id: activeUserId);
+        moodleSession=await loginStudy(user.username, user.password);
         if (moodleSession!='no connection' && moodleSession!='no user') {
           cookie = { 'Cookie' : ' $moodleSession; '};
           response = await get(url, headers: cookie);
@@ -129,6 +185,55 @@ class HttpServices {
       }
     }
   }
+
+  // Future<Document?> getHtmlOld(String link, {String? moodleSession}) async {
+  //   Document? html;
+  //   print('getting html....');
+  //   var url=Uri.parse(link);
+  //   if (moodleSession==null) {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     moodleSession = prefs.getString('moodleSession') ?? '';
+  //   }
+  //   var cookie = { 'Cookie' : ' $moodleSession; '};
+  //   var response;
+  //   // try get html with storef moodlSession
+  //   try {
+  //     response = await get(url, headers: cookie);
+  //     // if moodleSession is old, throws exception: loop redirect
+  //     html = parse(response.body);
+  //     print('html got');
+  //     return html;
+  //   } catch(err) {
+  //     print('getHtml fail');
+  //     print(err);
+  //   }
+  //   // if response is null or redirected to login page then
+  //   // reconnect, get new moodleSession and get html
+  //   if (response==null || response.headers['location'] == loginLink) {
+  //     print('get html reconnecting...');
+  //     try {
+  //       moodleSession=await reconnect(activeUserId);
+  //       if (moodleSession!='no connection' && moodleSession!='no user') {
+  //         cookie = { 'Cookie' : ' $moodleSession; '};
+  //         response = await get(url, headers: cookie);
+  //         if (response.headers['location'] == loginLink) {
+  //           //print('error');
+  //           return html;
+  //         } else {
+  //           html = parse(response.body);
+  //           print('html got');
+  //           return html;
+  //         }
+  //       } else {
+  //         return html;
+  //       }
+  //     } catch(err) {
+  //       print('reconnect fail');
+  //       print(err);
+  //       return html;
+  //     }
+  //   }
+  // }
 
   Future<String> reconnect(int? userId) async {
     Map<String, String> cookie={};
