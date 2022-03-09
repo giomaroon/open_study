@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gio_app/Services/BackgroundServices.dart';
-import 'package:gio_app/Services/DataBaseServices.dart';
+import 'package:gio_app/Services/DatabaseServices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Models.dart';
 import '../main.dart' show activeUserId;
@@ -23,7 +23,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool gradeNotif=false;
   int postNotifTime=0;
   User? user;
-  var db=DBServices.instance;
+  var db=DatabaseServices.instance;
   Map<int,int> valueFromTime={0:0,4:1,8:2,12:3,24:4};
 
   Future<void> getUserSettings() async {

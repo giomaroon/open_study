@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gio_app/Services/HttpServices.dart';
-import '../Services/DataBaseServices.dart';
+import '../Services/DatabaseServices.dart';
 import '../Models.dart';
 import 'PostsPage.dart';
 
@@ -26,7 +26,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
   Future<void> getDiscussions() async {
     List<Discussion> _discussionList=[];
     if (widget.forum!=null) {
-      var db=DBServices.instance;
+      var db=DatabaseServices.instance;
       _discussionList=await db.getObjectsById(object: Discussion, id: widget.forum!.id!)
                             as List<Discussion>;
       setState(() {
@@ -248,7 +248,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
                         onTap: () async {
                           Navigator.push(context, MaterialPageRoute(builder:
                               (context) => PostsPage(discussion: e)));
-                          var db=DBServices.instance;
+                          var db=DatabaseServices.instance;
                           var dbase=await db.database;
                           await dbase.update('Discussion', {'repliesUnread': 0},
                               where: 'id=?', whereArgs: [e.id]);

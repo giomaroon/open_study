@@ -1,4 +1,5 @@
 
+
 class User {
   final int? id;
   final String username;
@@ -263,7 +264,6 @@ class Assign {
   final String grade;
   final String link;
   final int? courseId;
-
 
   Assign({
     this.id,

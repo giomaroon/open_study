@@ -6,7 +6,7 @@ import 'package:gio_app/Pages/CoursesListPage.dart';
 import '../main.dart' show activeUserId, notificationServices;
 import 'EventsPage.dart';
 import 'package:html/dom.dart' show Document;
-import '../Services/DataBaseServices.dart';
+import '../Services/DatabaseServices.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage(
@@ -28,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   bool connected=true;
 
   Future<void> getUserStudyHtml() async {
-    user = await DBServices.instance.getUser(id: activeUserId);
+    user = await DatabaseServices.instance.getUser(id: activeUserId);
     setState(() {
       studentName=user?.studentName;
     });

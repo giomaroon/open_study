@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gio_app/Services/HttpServices.dart';
-import '../Services/DataBaseServices.dart';
+import '../Services/DatabaseServices.dart';
 import '../Models.dart';
 
 class AssignsPage extends StatefulWidget {
@@ -24,11 +24,11 @@ class _AssignsPageState extends State<AssignsPage> {
   bool newGrade=false;
   String updateTime='';
 
-  Future<void> getAssigns() async {
+  Future<void> getGrades() async {
     List<Assign> _assignList=[];
     if (widget.course?.id !=null) {
       var courseId = widget.course!.id;
-      var db= DBServices.instance;
+      var db= DatabaseServices.instance;
       _assignList=await db.getObjectsById(object: Assign, id: courseId)
                      as List<Assign>;
       setState(() {
@@ -85,7 +85,7 @@ class _AssignsPageState extends State<AssignsPage> {
       print('widget.course is null, get courseId from payload');
       var courseId = int.tryParse(widget.payloadCourseId!);
       if (courseId != null) {
-        var db = DBServices.instance;
+        var db = DatabaseServices.instance;
         _assignList = await db.getObjectsById(object: Assign, id: courseId) as List<Assign>;
         setState(() {
           assignList=_assignList;
@@ -102,7 +102,7 @@ class _AssignsPageState extends State<AssignsPage> {
 
   @override
   initState() {
-    getAssigns();
+    getGrades();
     super.initState();
   }
 
@@ -124,7 +124,7 @@ class _AssignsPageState extends State<AssignsPage> {
                 connected=true;
               });
               await Future.delayed(Duration(seconds: 1));
-              await getAssigns();
+              await getGrades();
             },
           ),
         ],

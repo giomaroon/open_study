@@ -7,10 +7,10 @@ import 'package:path/path.dart';
 
 import '../Models.dart';
 
-class DBServices {
+class DatabaseServices {
 
-  DBServices._privateConstructor();
-  static final DBServices instance = DBServices._privateConstructor();
+  DatabaseServices._privateConstructor();
+  static final DatabaseServices instance = DatabaseServices._privateConstructor();
 
   static Database? _database;
 

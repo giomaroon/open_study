@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gio_app/Services/HttpServices.dart';
 import 'dart:async';
-import '../Services/DataBaseServices.dart';
+import '../Services/DatabaseServices.dart';
 import '../Models.dart';
 import 'DiscussionsPage.dart';
 import 'AssignsPage.dart';
@@ -32,15 +32,15 @@ class _CoursePageState extends State<CoursePage> {
 
   Future<void> getForumsAssigns(BuildContext context) async {
     List<Forum> _forumList = [];
-    List<Assign> _assignLinks = [];
-    var db = DBServices.instance;
+    List<Assign> _assignList = [];
+    var db = DatabaseServices.instance;
     if (widget.course != null) {
       _forumList=await db.getObjectsById(object: Forum, id: widget.course!.id!)
                  as List<Forum>;
-      _assignLinks=await db.getObjectsById(object: Assign, id: widget.course!.id!)
+      _assignList=await db.getObjectsById(object: Assign, id: widget.course!.id!)
                    as List<Assign>;
       setState(() {
-        assignsExist=_assignLinks.isNotEmpty;
+        assignsExist=_assignList.isNotEmpty;
         forumList=_forumList;
       });
       var study = HttpServices();
@@ -48,19 +48,19 @@ class _CoursePageState extends State<CoursePage> {
       if (html != null) {
         _forumList = study.getForums(html, widget.course!.id!);
         //print(_forumList.map((e) => e.toMap()));
-        _assignLinks = study.getAssigns(html, widget.course!.id!);
+        _assignList = study.getAssigns(html, widget.course!.id!);
         await db.updateDB(newData: _forumList, whereId: 'courseId', id: widget.course!.id!);
-        await db.updateDB(newData: _assignLinks, whereId: 'courseId', id: widget.course!.id!);
+        await db.updateDB(newData: _assignList, whereId: 'courseId', id: widget.course!.id!);
         assignsExist = true;
         _forumList =await db.getObjectsById(object: Forum, id: widget.course!.id!)
                     as List<Forum>;
         //print(_forumList.map((e) => e.toMap()));
-        _assignLinks=await db.getObjectsById(object: Assign, id: widget.course!.id!)
+        _assignList=await db.getObjectsById(object: Assign, id: widget.course!.id!)
                      as List<Assign>;
         if (mounted) {
           setState(() {
             forumList=_forumList;
-            assignsExist=_assignLinks.isNotEmpty;
+            assignsExist=_assignList.isNotEmpty;
             loading = false;
           });
         }

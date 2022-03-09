@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gio_app/Services/HttpServices.dart';
-import '../Services/DataBaseServices.dart';
+import '../Services/DatabaseServices.dart';
 import '../Models.dart';
 import '../main.dart' show activeUserId;
 import 'package:html/dom.dart' show Document;
@@ -26,7 +26,7 @@ class _EventsPageState extends State<EventsPage> {
   Future<void> getEvents() async {
     List<Event> _eventList = [];
     // first get old events from DB
-    var db=DBServices.instance;
+    var db=DatabaseServices.instance;
     _eventList = await db.getObjectsById(object: Event, id: activeUserId)
                  as List<Event>;
     setState(() {

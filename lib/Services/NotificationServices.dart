@@ -21,10 +21,8 @@ class NotificationServices {
   //..........Initialize Notifiication Settings............
 
   Future<void> initializeNotifications() async {
-
     final AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('app_icon');
-
     final IOSInitializationSettings initializationSettingsIOS =
     IOSInitializationSettings(
         requestAlertPermission: false,

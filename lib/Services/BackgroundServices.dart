@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 import '../Models.dart';
 import '../main.dart';
-import 'DataBaseServices.dart';
+import 'DatabaseServices.dart';
 import 'HttpServices.dart';
 
 void callbackDispatcher() {
@@ -18,7 +18,7 @@ void callbackDispatcher() {
         var html = await study.getHtml('https://study.eap.gr/my/');
         if (html!=null) {
           var eventList = study.getEvents(html, activeUserId);
-          var db = DBServices.instance;
+          var db = DatabaseServices.instance;
           if (eventList.isNotEmpty) {
             await db.updateDB(
                 newData: eventList,
@@ -63,7 +63,7 @@ void callbackDispatcher() {
           var courseList = study.getCourses(html, activeUserId);
           print('courses');
           if (courseList.isNotEmpty) {
-            var db = DBServices.instance;
+            var db = DatabaseServices.instance;
             await db.updateDB(
                 newData: courseList,
                 whereId: 'userId',
@@ -134,7 +134,7 @@ void callbackDispatcher() {
         if (html!=null) {
           var courseList = study.getCourses(html, activeUserId);
           if (courseList.isNotEmpty) {
-            var db = DBServices.instance;
+            var db = DatabaseServices.instance;
             await db.updateDB(
                 newData: courseList,
                 whereId: 'userId',
@@ -196,7 +196,7 @@ void callbackDispatcher() {
 }
 
 Future<void> activateEventNotifications(bool on, int userId) async {
-  var dbase= await DBServices.instance.database;
+  var dbase= await DatabaseServices.instance.database;
   if (on==true) {
     await Workmanager().registerPeriodicTask(
       '1',

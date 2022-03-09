@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gio_app/Services/HttpServices.dart';
 import 'package:gio_app/main.dart';
 import 'package:html/dom.dart' show Document;
-import '../Services/DataBaseServices.dart';
+import '../Services/DatabaseServices.dart';
 import '../Models.dart';
 import 'CoursePage.dart';
 
@@ -24,7 +24,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
 
   Future<void> getCourses() async {
     List<Course> _courseList = [];
-    var db = DBServices.instance;
+    var db = DatabaseServices.instance;
     _courseList = await db.getObjectsById(object: Course, id: activeUserId)
         as List<Course>;
     setState(() {

@@ -3,7 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gio_app/Pages/LoadingPage.dart';
 import 'package:gio_app/Services/HttpServices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Services/DataBaseServices.dart';
+import '../Services/DatabaseServices.dart';
 import '../Models.dart';
 import '../main.dart';
 import 'HomePage.dart';
@@ -30,10 +30,15 @@ class _LoginPageState extends State<LoginPage> {
 
   final _formKey=GlobalKey<FormState>();
 
+
   Future<void> chekcIfUserExists() async {
     var storage=FlutterSecureStorage();
-    await storage.write(key: 'dbpass', value: username+password);
-    var db = await DBServices.instance.database;
+    if (await storage.read(key: 'dbpassGenerated') != 'yes') {
+      await storage.write(key: 'dbpass', value: username+password+'%D2ttd523');
+      await storage.write(key: 'dbpassGenerated', value: 'yes');
+    }
+    await storage.write(key: 'dbpass', value: username+password+'%D2ttd523');
+    var db = await DatabaseServices.instance.database;
     var userExistsDB = await db.query('User', columns: ['id'],
         where: 'username=? AND password=?',
         whereArgs: [username,password]
@@ -51,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     // call httpLogin and return auth result and html of study.gr/my
     var study=HttpServices();
-    var loginResult = await study.httpLogin(username, password);
+    var loginResult = await study.loginStudy(username, password);
     print(loginResult);
 
     if (loginResult is Document) {
@@ -69,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
           gradeNotification: 1,
           eventsUpdateTime: '');
 
-      var db=DBServices.instance;
+      var db=DatabaseServices.instance;
       userId = await db.updateUserSetNotif(user);
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -81,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
 
     } else if (loginResult=='no user'){
       setState(() {
-        authResultMessage = 'λάθος στοιχεία';
+        authResultMessage = 'λάθος στοιχεία'; //TODO  'αποτυχία σύνδεσης'
         print(authResultMessage);
         loading = false;
       });
@@ -89,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setInt('userId', userId);
       activeUserId=userId;
-      var db=DBServices.instance;
+      var db=DatabaseServices.instance;
       var user = await db.getUser(id: activeUserId);
       await db.updateUserSetNotif(user);
       Navigator.pushReplacement(context, MaterialPageRoute(
@@ -166,9 +171,6 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       builder: (BuildContext context) =>
           AlertDialog(
-            // title: Text( 'Όροι χρήσης της εφαρμογής'
-            //
-            // ),
             content: Text('Η εφαρμογή αυτή έχει στόχο την ενημέρωση των '
                 'σπουδαστών του Ελληνικού Ανοικτού Πανεπιστημίου (ΕΑΠ) σχετικά '
                 'με τα μαθήματα που παρακολουθούν και πιο συγκεκριμένα:\n τα '

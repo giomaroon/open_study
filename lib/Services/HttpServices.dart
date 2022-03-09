@@ -4,95 +4,15 @@ import 'package:html/parser.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Models.dart';
-import 'DataBaseServices.dart';
+import 'DatabaseServices.dart';
 
 class HttpServices {
 
   final String loginLink = 'https://study.eap.gr/login/index.php';
   final String noConnection='no connection';
 
-  //... parse datetimeString to DateTime
-  DateTime? getEventDateTime(String datetime) {
-    var now = DateTime.now();
-    Map monthNum = {'Ιανουάριος': 1, 'Φεβρουάριος': 2, 'Μάρτιος': 3, 'Απρίλιος': 4,
-      'Μάιος': 5, 'Ιούνιος': 6, 'Ιούλιος': 7, 'Αύγουστος': 8, 'Σεπτέμβριος': 9,
-      'Οκτώβριος': 10, 'Νοέμβριος': 11, 'Δεκέμβριος': 12, 'Ιανουαρίου': 1,
-      'Φεβρουαρίου': 2, 'Μαρτίου': 3, 'Απριλίου': 4, 'Μαΐου': 5, 'Ιουνίου': 6,
-      'Ιουλίου': 7, 'Αυγούστου': 8, 'Σεπτεμβρίου': 9, 'Οκτωβρίου': 10,
-      'Νοεμβρίου': 11, 'Δεκεμβρίου': 12};
-    var datetimeList = datetime.split(', ');
-    print(datetime);
-    //check if is 'Αύριο' or 'Σήμερα'....
-    // TODO try catch
-    try {
-      if (datetimeList[0]=='Αύριο') {
-        var time = datetimeList[1].split(' » ')[0].split(':');
-        var hour = int.tryParse(time[0])?? 0;
-        var min = int.tryParse(time[1])?? 0;
-        //var now = DateTime.now();
-        var dt = DateTime(now.year, now.month, now.day, hour, min);
-        dt = dt.add(const Duration(days: 1));
-        return dt;
-      } else if (datetimeList[0]=='Σήμερα'){
-        print('a');
-        var time = datetimeList[1].split(' » ')[0].split(':');
-        var hour = int.tryParse(time[0])?? 0;
-        var min = int.tryParse(time[1])?? 0;
-        //var now = DateTime.now();
-        var dt = DateTime(now.year, now.month, now.day, hour, min);
-        return dt;
-      } else {
-        print('a');
-        var day = int.tryParse(datetimeList[1].split(' ')[0])?? 0;
-        var monthString = datetimeList[1].split(' ')[1];
-        print(monthString);
-        var month = monthNum[monthString];
-        print(month);
-        var time = datetimeList[2].split(' » ')[0].split(':');
-        var hour = int.tryParse(time[0])?? 0;
-        var min = int.tryParse(time[1])?? 0;
-        //var now = DateTime.now();
-        var year = month >= now.month? now.year : now.year+1;
-        print(year);
-        var dt = DateTime(year, month, day, hour, min);
-        return dt;
-      }
-    } catch (err) {
-      print(err);
-    }
-  }
-
-  DateTime getDiscussDateTime(String datetime) {
-    var dt=DateTime.now();
-    Map monthNum = {'Ιαν': 1, 'Φεβ': 2, 'Μάρ': 3, 'Απρ': 4, 'Μάι': 5, 'Ιού': 6,
-      'Αύγ': 8, 'Σεπ': 9, 'Οκτ': 10, 'Νοέ': 11, 'Δεκ': 12, 'Μαρ': 3, 'Μαΐ': 5,
-      'Ιούν': 6, 'Ιουν': 6, 'Ιου': 6, 'Ιούλ': 7, 'Ιουλ':7, 'Αυγ': 8, 'Νοε': 11, };
-    //print(datetime);
-    try {
-      // parsing datetime   e.g:  Κυρ, 13 Φεβ 2022, 8:20 μμ
-      var dateList = datetime.split(', ')[1].split(' ');
-      var day = int.tryParse(dateList[0])??0;
-      var monthString = dateList[1];
-      //print(monthString);
-      var month = monthNum[monthString];
-      var year = int.tryParse(dateList[2])??0;
-      var timeList = datetime.split(', ')[2].split(' ');
-      var time = timeList[0].split(':');
-      var hour = int.tryParse(time[0])?? 0;
-      if (timeList[1]=='μμ' && hour!=12) {
-        hour=hour+12;
-      }
-      var min = int.tryParse(time[1])?? 0;
-      dt = DateTime(year, month, day, hour, min);
-    } catch (err) {
-      print('error parsing discuss dateTime');
-    }
-    //print(dt);
-    return dt;
-  }
-
-  // ... login, get cookie, get html
-  Future<dynamic> httpLogin(String username, String password) async {
+  //....  http methods
+  Future<dynamic> loginStudy(String username, String password) async {
     Document? html;
     Map<String, String> cookie={};
     String moodleSession='';
@@ -119,7 +39,7 @@ class HttpServices {
       var request = Request('POST', url)
         ..headers.addAll(cookie)
         ..bodyFields = {'username': username, 'password' : password,
-                         'anchor' : '', 'logintoken' : logintoken??''}
+          'anchor' : '', 'logintoken' : logintoken??''}
         ..followRedirects = false;
       var responseStream = await request.send();
       //print(responseStream.statusCode);
@@ -160,6 +80,7 @@ class HttpServices {
 
     return html;
   }
+
   Future<Document?> getHtml(String link, {String? moodleSession}) async {
     Document? html;
     print('getting html....');
@@ -186,7 +107,7 @@ class HttpServices {
     if (response==null || response.headers['location'] == loginLink) {
       print('get html reconnecting...');
       try {
-        moodleSession=await reConnect(activeUserId);
+        moodleSession=await reconnect(activeUserId);
         if (moodleSession!='no connection' && moodleSession!='no user') {
           cookie = { 'Cookie' : ' $moodleSession; '};
           response = await get(url, headers: cookie);
@@ -209,7 +130,7 @@ class HttpServices {
     }
   }
 
-  Future<String> reConnect(int? userId) async {
+  Future<String> reconnect(int? userId) async {
     Map<String, String> cookie={};
     String moodleSession='';
     String? logintoken;
@@ -236,12 +157,12 @@ class HttpServices {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       userId=prefs.getInt('userId');
     }
-    var user = await DBServices.instance.getUser(id: userId);
+    var user = await DatabaseServices.instance.getUser(id: userId);
     try {
       var request = Request('POST', url)
         ..headers.addAll(cookie)
         ..bodyFields = {'username': user.username, 'password' : user.password,
-                         'anchor' : '', 'logintoken' : logintoken??''}
+          'anchor' : '', 'logintoken' : logintoken??''}
         ..followRedirects = false;
       var responseStream = await request.send();
       print(responseStream.statusCode);
@@ -261,6 +182,7 @@ class HttpServices {
     }
   }
 
+  //... methods for collecting data from parsed html
   List<Event> getEvents(Document html, int userId) {
     List<Event> eventList=[];
     var htmlWebex= html.getElementsByClassName('oss-info-container');
@@ -279,7 +201,7 @@ class HttpServices {
 
     try {
       for (int i=0; i<htmlEvents.length; i=i+1) {
-        print(htmlEvents[i]);
+        //print(htmlEvents[i]);
         var htmlId = htmlEvents[i].children[1].attributes['data-event-id'];
         eventList.add(Event(
             link: htmlEvents[i].children[1].attributes['data-event-id']!,
@@ -436,6 +358,86 @@ class HttpServices {
       }
     }
     return postList;
+  }
+
+  // ... methods for parsing datetime string and return DateTime
+  DateTime? getEventDateTime(String datetime) {
+    var now = DateTime.now();
+    Map monthNum = {'Ιανουάριος': 1, 'Φεβρουάριος': 2, 'Μάρτιος': 3, 'Απρίλιος': 4,
+      'Μάιος': 5, 'Ιούνιος': 6, 'Ιούλιος': 7, 'Αύγουστος': 8, 'Σεπτέμβριος': 9,
+      'Οκτώβριος': 10, 'Νοέμβριος': 11, 'Δεκέμβριος': 12, 'Ιανουαρίου': 1,
+      'Φεβρουαρίου': 2, 'Μαρτίου': 3, 'Απριλίου': 4, 'Μαΐου': 5, 'Ιουνίου': 6,
+      'Ιουλίου': 7, 'Αυγούστου': 8, 'Σεπτεμβρίου': 9, 'Οκτωβρίου': 10,
+      'Νοεμβρίου': 11, 'Δεκεμβρίου': 12};
+    var datetimeList = datetime.split(', ');
+    //print(datetime);
+    //check if is 'Αύριο' or 'Σήμερα'....
+    // TODO try catch
+    try {
+      if (datetimeList[0]=='Αύριο') {
+        var time = datetimeList[1].split(' » ')[0].split(':');
+        var hour = int.tryParse(time[0])?? 0;
+        var min = int.tryParse(time[1])?? 0;
+        //var now = DateTime.now();
+        var dt = DateTime(now.year, now.month, now.day, hour, min);
+        dt = dt.add(const Duration(days: 1));
+        return dt;
+      } else if (datetimeList[0]=='Σήμερα'){
+        //print('a');
+        var time = datetimeList[1].split(' » ')[0].split(':');
+        var hour = int.tryParse(time[0])?? 0;
+        var min = int.tryParse(time[1])?? 0;
+        //var now = DateTime.now();
+        var dt = DateTime(now.year, now.month, now.day, hour, min);
+        return dt;
+      } else {
+        //print('a');
+        var day = int.tryParse(datetimeList[1].split(' ')[0])?? 0;
+        var monthString = datetimeList[1].split(' ')[1];
+        //print(monthString);
+        var month = monthNum[monthString];
+        //print(month);
+        var time = datetimeList[2].split(' » ')[0].split(':');
+        var hour = int.tryParse(time[0])?? 0;
+        var min = int.tryParse(time[1])?? 0;
+        //var now = DateTime.now();
+        var year = month >= now.month? now.year : now.year+1;
+        //print(year);
+        var dt = DateTime(year, month, day, hour, min);
+        return dt;
+      }
+    } catch (err) {
+      print(err);
+    }
+  }
+
+  DateTime getDiscussDateTime(String datetime) {
+    var dt=DateTime.now();
+    Map monthNum = {'Ιαν': 1, 'Φεβ': 2, 'Μάρ': 3, 'Απρ': 4, 'Μάι': 5, 'Ιού': 6,
+      'Αύγ': 8, 'Σεπ': 9, 'Οκτ': 10, 'Νοέ': 11, 'Δεκ': 12, 'Μαρ': 3, 'Μαΐ': 5,
+      'Ιούν': 6, 'Ιουν': 6, 'Ιου': 6, 'Ιούλ': 7, 'Ιουλ':7, 'Αυγ': 8, 'Νοε': 11, };
+    //print(datetime);
+    try {
+      // parsing datetime   e.g:  Κυρ, 13 Φεβ 2022, 8:20 μμ
+      var dateList = datetime.split(', ')[1].split(' ');
+      var day = int.tryParse(dateList[0])??0;
+      var monthString = dateList[1];
+      //print(monthString);
+      var month = monthNum[monthString];
+      var year = int.tryParse(dateList[2])??0;
+      var timeList = datetime.split(', ')[2].split(' ');
+      var time = timeList[0].split(':');
+      var hour = int.tryParse(time[0])?? 0;
+      if (timeList[1]=='μμ' && hour!=12) {
+        hour=hour+12;
+      }
+      var min = int.tryParse(time[1])?? 0;
+      dt = DateTime(year, month, day, hour, min);
+    } catch (err) {
+      print('error parsing discuss dateTime');
+    }
+    //print(dt);
+    return dt;
   }
 
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gio_app/Services/HttpServices.dart';
-import '../Services/DataBaseServices.dart';
+import '../Services/DatabaseServices.dart';
 import '../Models.dart';
 
 
@@ -27,7 +27,7 @@ class _PostsPageState extends State<PostsPage> {
 
   Future<void> getPosts() async {
     List<Post> _postList=[];
-    var db=DBServices.instance;
+    var db=DatabaseServices.instance;
     if (widget.discussion!=null) {
       print('widget.discussion not null');
       _postList=await db.getObjectsById(object: Post, id: widget.discussion!.id!)
