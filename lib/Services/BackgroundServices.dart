@@ -93,18 +93,24 @@ void callbackDispatcher() {
                       discussionList = await db.getObjectsById(
                           object: Discussion,
                           id: forum.id!) as List<Discussion>;
+                      print('b');
                       for (var discussion in discussionList) {
+                        print('c');
                         if (discussion.repliesUnread!=0) {
+                          print('d');
                           html = await study.getHtml(discussion.link);
                           if (html!=null) {
                             var postList = study.getPosts(html, discussion.id!);
+                            print('post');
                             await db.updateDB(
                                 newData: postList,
                                 whereId: 'discussionId',
                                 id: discussion.id!);
+                            print('a');
                             postList = await db.getObjectsById(
                                 object: Post,
                                 id: discussion.id!) as List<Post>;
+                            print(postList.last.toMap());
                             await notificationServices.showNotification(
                                 id: notifId,
                                 title: discussion.title+' - '+postList.last.author,
@@ -230,7 +236,7 @@ Future<void> activatePostNotifications({required int time}) async {
     await Workmanager().registerPeriodicTask(
         '2',
         'post',
-        initialDelay: Duration(minutes: 10),
+        initialDelay: Duration(seconds: 20),//minutes: 10),
         frequency: Duration(hours: time)
     );
   }

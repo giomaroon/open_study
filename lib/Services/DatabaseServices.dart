@@ -267,11 +267,19 @@ class DatabaseServices {
           if (newDataLinks.contains(el['link'])==false) {
             await db.delete(table, where: 'link=? AND $whereId=?', whereArgs: [el['link'], id]);
           } else {
+            // remove existed htmlObjects that allready exist
             if (table=='Forum') {
               var newDataItemList=_newData.where((element) => element.link==el['link']).toList();
               if (newDataItemList.isNotEmpty) {
                     await db.update(table, {'unread': newDataItemList[0].unread},
                         where: 'link=? AND courseId=?', whereArgs: [newDataItemList[0].link, id]);
+              }
+            } else if (table=='Discussion') {
+              var newDataItemList=_newData.where((element) => element.link==el['link']).toList();
+              if (newDataItemList.isNotEmpty) {
+                await db.update(table, {'replies': newDataItemList[0].replies, 'repliesUnread':newDataItemList[0].repliesUnread},
+                    where: 'link=? AND forumId=?', whereArgs: [newDataItemList[0].link, id]);
+                print('kaka');
               }
             }
             _newData.removeWhere((item) => item.link == el['link']);
@@ -287,6 +295,7 @@ class DatabaseServices {
         print(err);
       }
     }
+    print('DB updated');
     return rows;
   }
 
@@ -328,6 +337,7 @@ class DatabaseServices {
         List<Discussion> list = objectsDB.isNotEmpty
             ? objectsDB.map((c) => Discussion.fromMap(c)).toList()
             : [];
+        print('discussion got?');
         return list;
       }
       case Post : {
