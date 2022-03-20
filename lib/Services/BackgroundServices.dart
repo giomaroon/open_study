@@ -61,7 +61,7 @@ void callbackDispatcher() {
         var html = await study.getHtml('https://study.eap.gr/my/');
         if (html!=null) {
           var courseList = study.getCourses(html, activeUserId);
-          print('courses');
+          //print('courses');
           if (courseList.isNotEmpty) {
             var db = DatabaseServices.instance;
             await db.updateDB(
@@ -75,17 +75,17 @@ void callbackDispatcher() {
               html=await study.getHtml(course.link);
               if (html!=null) {
                 var forumList = study.getForums(html,course.id!);
-                print('forums');
+                //print('forums');
                 await db.updateDB(newData: forumList, whereId: 'courseId', id: course.id!);
                 forumList = await db.getObjectsById(object: Forum, id: course.id!)
                             as List<Forum>;
                 for (var forum in forumList) {
                   if (forum.unread=='- new') {
-                    print('unread - new');
+                    //print('unread - new');
                     html = await study.getHtml(forum.link);
                     if (html!=null) {
                       var discussionList = study.getDiscussions(html, forum.id!);
-                      print('discussion');
+                      //print('discussion');
                       await db.updateDB(
                           newData: discussionList,
                           whereId: 'forumId',
@@ -93,31 +93,31 @@ void callbackDispatcher() {
                       discussionList = await db.getObjectsById(
                           object: Discussion,
                           id: forum.id!) as List<Discussion>;
-                      print('b');
+                      //print('b');
                       for (var discussion in discussionList) {
-                        print('c');
+                        //print('c');
                         if (discussion.repliesUnread!=0) {
-                          print('d');
+                          //print('d');
                           html = await study.getHtml(discussion.link);
                           if (html!=null) {
                             var postList = study.getPosts(html, discussion.id!);
-                            print('post');
+                            //print('post');
                             await db.updateDB(
                                 newData: postList,
                                 whereId: 'discussionId',
                                 id: discussion.id!);
-                            print('a');
+                            //print('a');
                             postList = await db.getObjectsById(
                                 object: Post,
                                 id: discussion.id!) as List<Post>;
-                            print(postList.last.toMap());
+                            //print(postList.last.toMap());
                             await notificationServices.showNotification(
                                 id: notifId,
                                 title: discussion.title+' - '+postList.last.author,
                                 body: postList.last.content,
                                 payload: discussion.id.toString()+' '+'/PostsPage'
                             );
-                            print('notification with id: '+notifId.toString());
+                            //print('notification with id: '+notifId.toString());
                             ++notifId;
                           }
                         }
@@ -230,13 +230,13 @@ Future<void> activateEventNotifications(bool on, int userId) async {
 
 Future<void> activatePostNotifications({required int time}) async {
   await Workmanager().cancelByUniqueName('2');
-  print('cancel post notif');
+  //print('cancel post notif');
   if (time!=0) {
-    print('post notif is on: '+time.toString());
+    //print('post notif is on: '+time.toString());
     await Workmanager().registerPeriodicTask(
         '2',
         'post',
-        initialDelay: Duration(seconds: 20),//minutes: 10),
+        initialDelay: Duration( minutes: 10),
         frequency: Duration(hours: time)
     );
   }

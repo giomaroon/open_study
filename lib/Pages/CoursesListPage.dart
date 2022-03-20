@@ -75,49 +75,49 @@ class _CoursesListPageState extends State<CoursesListPage> {
         appBar: AppBar(
           backgroundColor: Color(0xFFCF118C),
           title: Text('Μαθήματα'),
-          actions: [
-            connected
-                ? SizedBox()
-                : IconButton(
-                  icon: Icon(Icons.refresh, size: 30),
-                  onPressed: () async{
-                    setState(() {
-                      loading=true;
-                      connected=true;
-                    });
-                    await Future.delayed(Duration(seconds: 1));
-                    await getCourses();
-                  },
-                ),
-          ],
+          // actions: [
+          //   connected
+          //       ? SizedBox()
+          //       : IconButton(
+          //         icon: Icon(Icons.refresh, size: 30),
+          //         onPressed: () async{
+          //           setState(() {
+          //             loading=true;
+          //             connected=true;
+          //           });
+          //           await Future.delayed(Duration(seconds: 1));
+          //           await getCourses();
+          //         },
+          //       ),
+          // ],
         ),
         body: Column(
           children: [
-            loading
-                ? Container(
-                    child: Column(
-                    children: [
-                      // Container(
-                      //   child: Text('σύνδεση...'),
-                      // ),
-                      SizedBox(
-                        height: 2,
-                      ),
-                      LinearProgressIndicator(
-                        minHeight: 4,
-                        color: Color(0xFFCF118C),
-                        backgroundColor: Colors.grey,
-                      )
-                    ],
-                  ))
-                : connected
-                    ? SizedBox()
-                    : Container(
-                        child: Text(
-                          'εκτός σύνδεσης',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
+            // loading
+            //     ? Container(
+            //         child: Column(
+            //         children: [
+            //           // Container(
+            //           //   child: Text('σύνδεση...'),
+            //           // ),
+            //           SizedBox(
+            //             height: 2,
+            //           ),
+            //           LinearProgressIndicator(
+            //             minHeight: 4,
+            //             color: Color(0xFFCF118C),
+            //             backgroundColor: Colors.grey,
+            //           )
+            //         ],
+            //       ))
+            //     : connected
+            //         ? SizedBox()
+            //         : Container(
+            //             child: Text(
+            //               'εκτός σύνδεσης',
+            //               style: TextStyle(color: Colors.red),
+            //             ),
+            //           ),
             Expanded(
                 child: courseList.isEmpty
                     ? Container(

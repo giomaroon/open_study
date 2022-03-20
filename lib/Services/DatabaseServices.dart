@@ -279,7 +279,7 @@ class DatabaseServices {
               if (newDataItemList.isNotEmpty) {
                 await db.update(table, {'replies': newDataItemList[0].replies, 'repliesUnread':newDataItemList[0].repliesUnread},
                     where: 'link=? AND forumId=?', whereArgs: [newDataItemList[0].link, id]);
-                print('kaka');
+                //print('kaka');
               }
             }
             _newData.removeWhere((item) => item.link == el['link']);
@@ -291,11 +291,11 @@ class DatabaseServices {
           }
         }
       } catch (err) {
-        print('ERROR...:');
+        //print('ERROR...:');
         print(err);
       }
     }
-    print('DB updated');
+    //print('DB updated');
     return rows;
   }
 

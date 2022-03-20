@@ -2,7 +2,7 @@
     package="com.example.gio_app">
    <uses-permission android:name="android.permission.INTERNET" />
    <application
-        android:label="open study"
+        android:label="Open Study"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false">
         <activity

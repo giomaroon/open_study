@@ -94,19 +94,19 @@ class _HomePageState extends State<HomePage> {
         ),
         //centerTitle: true,
         actions: [
-          connected
-              ? SizedBox()
-              : IconButton(
-                icon: Icon(Icons.refresh, size: 30),
-                onPressed: () async{
-                  setState(() {
-                    loading=true;
-                    connected=true;
-                  });
-                  await Future.delayed(Duration(seconds: 1));
-                  await getUserStudyHtml();
-                },
-              ),
+          // connected
+          //     ? SizedBox()
+          //     : IconButton(
+          //       icon: Icon(Icons.refresh, size: 30),
+          //       onPressed: () async{
+          //         setState(() {
+          //           loading=true;
+          //           connected=true;
+          //         });
+          //         await Future.delayed(Duration(seconds: 1));
+          //         await getUserStudyHtml();
+          //       },
+          //     ),
           IconButton(
             icon: Icon(Icons.settings, size: 30),
             onPressed: () {
@@ -120,27 +120,27 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            loading
-            ? Container(
-              child: Column(
-                children: [
-                  SizedBox(height: 2),
-                  LinearProgressIndicator(
-                    minHeight: 4,
-                    color: Color(0xFFCF118C),
-                    backgroundColor: Colors.grey,
-                  ),
-                  SizedBox(height: 14)
-                ],
-              )
-            )
-            : connected
-              ? SizedBox(height: 20,)
-              : Container(
-                height: 20,
-                child: Text('εκτός σύνδεσης', style: TextStyle(color: Colors.red),),
-              ),
-            SizedBox(height: 10),
+            // loading
+            // ? Container(
+            //   child: Column(
+            //     children: [
+            //       SizedBox(height: 2),
+            //       LinearProgressIndicator(
+            //         minHeight: 4,
+            //         color: Color(0xFFCF118C),
+            //         backgroundColor: Colors.grey,
+            //       ),
+            //       SizedBox(height: 14)
+            //     ],
+            //   )
+            // )
+            // : connected
+            //   ? SizedBox(height: 20,)
+            //   : Container(
+            //     height: 20,
+            //     child: Text('εκτός σύνδεσης', style: TextStyle(color: Colors.red),),
+            //   ),
+            SizedBox(height: 24),
             Container(
               child: Row(
                 children: [

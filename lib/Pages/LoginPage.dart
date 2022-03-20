@@ -136,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                 html: html)));
       } else {
         setState(() {
-          authResultMessage = 'αδυναμία σύνδεσης';
+          authResultMessage = 'εκτός σύνδεσης';
           loading = false;
         });
       }

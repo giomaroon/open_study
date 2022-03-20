@@ -21,12 +21,12 @@ class HttpServices {
     var url=Uri.parse(loginLink);
     try {
       var response = await get(url);//.timeout(Duration(seconds: 10));
-      print(response.statusCode);
+      //print(response.statusCode);
       moodleSession=response.headers['set-cookie'].toString().substring(0,49);
-      print(moodleSession);
+      //print(moodleSession);
       html = parse(response.body);
       logintoken=html.getElementsByClassName('modal-body')[0].children[0].children[6].attributes['value'];
-      print(logintoken);
+      //print(logintoken);
     } catch(err) {
       print(err);
       return noConnection;
@@ -63,75 +63,6 @@ class HttpServices {
     return moodleSession;
   }
 
-  // Future<dynamic> loginStudyOld(String username, String password) async {
-  //   Document? html;
-  //   Map<String, String> cookie={};
-  //   String moodleSession='';
-  //   String? logintoken;
-  //   // (1)...GET: Study/login , moodleSession1, logintoken..............
-  //   var url=Uri.parse(loginLink);
-  //   try {
-  //     var response = await get(url);//.timeout(Duration(seconds: 10));
-  //     print(response.statusCode);
-  //     moodleSession=response.headers['set-cookie'].toString().substring(0,49);
-  //     print(moodleSession);
-  //     html = parse(response.body);
-  //     logintoken=html.getElementsByClassName('modal-body')[0].children[0].children[6].attributes['value'];
-  //     print(logintoken);
-  //   } catch(err) {
-  //     print(err);
-  //     return noConnection;
-  //   }
-  //
-  //   // (2)...POST: Study/login with cookie - moodleSession1 , Get MoodleSession2...
-  //   cookie = { 'Cookie' : '$moodleSession; '};
-  //   print(cookie);
-  //   try {
-  //     var request = Request('POST', url)
-  //       ..headers.addAll(cookie)
-  //       ..bodyFields = {'username': username, 'password' : password,
-  //         'anchor' : '', 'logintoken' : logintoken??''}
-  //       ..followRedirects = false;
-  //     var responseStream = await request.send();
-  //     //print(responseStream.statusCode);
-  //     //print(responseStream.headers);
-  //     //print(responseStream.headers['location']);
-  //     if (responseStream.headers['location'] == loginLink) {
-  //       print('no user');
-  //       return 'no user';
-  //     }
-  //     moodleSession=responseStream.headers['set-cookie'].toString().substring(0,49);
-  //     //print(moodleSession);
-  //   } catch(err) {
-  //     print(err);
-  //     return noConnection;
-  //   }
-  //
-  //   // (3)....Make new cookie with moodleSession2 and
-  //   // get everything while statusCode == 200
-  //   cookie = { 'Cookie' : ' $moodleSession; '};
-  //   print(cookie);
-  //   url=Uri.parse('https://study.eap.gr/my/');
-  //   try {
-  //     var response = await get(url, headers: cookie);    //
-  //     print(response.statusCode);
-  //     //print(response.headers['location']);
-  //     if (response.headers['location'] == loginLink) {
-  //       return noConnection;
-  //     }
-  //     html = parse(response.body);
-  //   } catch(err) {
-  //     print('error');
-  //     return noConnection;
-  //   }
-  //
-  //   // store moodleSession to SherdPreferences
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.setString('moodleSession', moodleSession);
-  //
-  //   return html;
-  // }
-
   Future<Document?> getHtml(String link, {String? moodleSession}) async {
     Document? html;
     print('getting html....');
@@ -147,10 +78,10 @@ class HttpServices {
       response = await get(url, headers: cookie);
       // if moodleSession is old, throws exception: loop redirect
       html = parse(response.body);
-      print('html got');
+      //print('html got');
       return html;
     } catch(err) {
-      print('getHtml fail');
+      //print('getHtml fail');
       print(err);
     }
     // if response is null or redirected to login page then
@@ -172,7 +103,7 @@ class HttpServices {
             return html;
           } else {
             html = parse(response.body);
-            print('html got');
+            //print('html got');
             return html;
           }
         } else {
@@ -235,57 +166,57 @@ class HttpServices {
   //   }
   // }
 
-  Future<String> reconnect(int? userId) async {
-    Map<String, String> cookie={};
-    String moodleSession='';
-    String? logintoken;
-    // (1)...GET: Study/login , moodleSession1, logintoken..............
-    var url=Uri.parse(loginLink);
-    try {
-      print('get study/login');
-      var response = await get(url);//.timeout(Duration(seconds: 10));
-      print(response.statusCode);
-      moodleSession=response.headers['set-cookie'].toString().substring(0,49);
-      print(moodleSession);
-      var html = parse(response.body);
-      logintoken=html.getElementsByClassName('modal-body')[0].children[0].children[6].attributes['value'];
-      //print(logintoken);
-    } catch(err) {
-      print(err);
-      print(noConnection);
-      return noConnection;
-    }
-    // (2)...POST: Study/login with cookie - moodleSession1 , Get MoodleSession2...
-    cookie = { 'Cookie' : '$moodleSession; '};
-    //print(cookie);
-    if (userId==null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      userId=prefs.getInt('userId');
-    }
-    var user = await DatabaseServices.instance.getUser(id: userId);
-    try {
-      var request = Request('POST', url)
-        ..headers.addAll(cookie)
-        ..bodyFields = {'username': user.username, 'password' : user.password,
-          'anchor' : '', 'logintoken' : logintoken??''}
-        ..followRedirects = false;
-      var responseStream = await request.send();
-      print(responseStream.statusCode);
-      //print(responseStream.headers);
-      print(responseStream.headers['location']);
-      if (responseStream.headers['location'] == loginLink) {
-        return 'no user';
-      }
-      moodleSession=responseStream.headers['set-cookie'].toString().substring(0,49);
-      print(moodleSession);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('moodleSession', moodleSession);
-      return moodleSession;
-    } catch(err) {
-      print(err);
-      return noConnection;
-    }
-  }
+  // Future<String> reconnect(int? userId) async {
+  //   Map<String, String> cookie={};
+  //   String moodleSession='';
+  //   String? logintoken;
+  //   // (1)...GET: Study/login , moodleSession1, logintoken..............
+  //   var url=Uri.parse(loginLink);
+  //   try {
+  //     print('get study/login');
+  //     var response = await get(url);//.timeout(Duration(seconds: 10));
+  //     print(response.statusCode);
+  //     moodleSession=response.headers['set-cookie'].toString().substring(0,49);
+  //     print(moodleSession);
+  //     var html = parse(response.body);
+  //     logintoken=html.getElementsByClassName('modal-body')[0].children[0].children[6].attributes['value'];
+  //     //print(logintoken);
+  //   } catch(err) {
+  //     print(err);
+  //     print(noConnection);
+  //     return noConnection;
+  //   }
+  //   // (2)...POST: Study/login with cookie - moodleSession1 , Get MoodleSession2...
+  //   cookie = { 'Cookie' : '$moodleSession; '};
+  //   //print(cookie);
+  //   if (userId==null) {
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     userId=prefs.getInt('userId');
+  //   }
+  //   var user = await DatabaseServices.instance.getUser(id: userId);
+  //   try {
+  //     var request = Request('POST', url)
+  //       ..headers.addAll(cookie)
+  //       ..bodyFields = {'username': user.username, 'password' : user.password,
+  //         'anchor' : '', 'logintoken' : logintoken??''}
+  //       ..followRedirects = false;
+  //     var responseStream = await request.send();
+  //     print(responseStream.statusCode);
+  //     //print(responseStream.headers);
+  //     print(responseStream.headers['location']);
+  //     if (responseStream.headers['location'] == loginLink) {
+  //       return 'no user';
+  //     }
+  //     moodleSession=responseStream.headers['set-cookie'].toString().substring(0,49);
+  //     print(moodleSession);
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     await prefs.setString('moodleSession', moodleSession);
+  //     return moodleSession;
+  //   } catch(err) {
+  //     print(err);
+  //     return noConnection;
+  //   }
+  // }
 
   //... methods for collecting data from parsed html
   List<Event> getEvents(Document html, int userId) {
