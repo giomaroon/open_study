@@ -29,7 +29,7 @@ class _PostsPageState extends State<PostsPage> {
     List<Post> _postList=[];
     var db=DatabaseServices.instance;
     if (widget.discussion!=null) {
-      print('widget.discussion not null');
+      //print('widget.discussion not null');
       _postList=await db.getObjectsById(object: Post, id: widget.discussion!.id!)
                 as List<Post>;
       setState(() {

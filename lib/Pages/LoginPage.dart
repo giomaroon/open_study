@@ -117,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
     var study=HttpServices();
     var loginResult = await study.loginStudy(username, password);
     print(loginResult);
-    if (loginResult=='no user'){
+    if (loginResult=='auth error'){
       setState(() {
         authResultMessage = 'αποτυχία σύνδεσης';
         print(authResultMessage);
@@ -144,10 +144,12 @@ class _LoginPageState extends State<LoginPage> {
       html = await study.getHtml('https://study.eap.gr/my/', moodleSession: loginResult);
       // get student name, create User, update DB, store activeUserId and push HomePage(html)
       String studentName='';
-      try {
-        studentName = html!.getElementsByClassName('usertext mr-1')[0].text;
-      } catch (err) {
-        print(err);
+      if (html!=null) {
+        try {
+          studentName = html.getElementsByClassName('usertext mr-1')[0].text;
+        } catch (err) {
+          print(err);
+        }
       }
 
       var user=User(

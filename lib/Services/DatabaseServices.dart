@@ -337,7 +337,7 @@ class DatabaseServices {
         List<Discussion> list = objectsDB.isNotEmpty
             ? objectsDB.map((c) => Discussion.fromMap(c)).toList()
             : [];
-        print('discussion got?');
+        //print('discussion got?');
         return list;
       }
       case Post : {
