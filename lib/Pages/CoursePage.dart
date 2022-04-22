@@ -102,42 +102,42 @@ class _CoursePageState extends State<CoursePage> {
             )
             )
           ),
-        // actions: [
-        //   connected
-        //   ? SizedBox()
-        //   : IconButton(
-        //     icon: Icon(Icons.refresh, size: 30),
-        //     onPressed: () async{
-        //       setState(() {
-        //         loading=true;
-        //         connected=true;
-        //       });
-        //       await Future.delayed(Duration(seconds: 1));
-        //       await getForumsAssigns(context);
-        //     },
-        //   ),
-        // ],
+        actions: [
+          connected
+          ? SizedBox()
+          : IconButton(
+            icon: Icon(Icons.refresh, size: 30),
+            onPressed: () async{
+              setState(() {
+                loading=true;
+                connected=true;
+              });
+              await Future.delayed(Duration(seconds: 1));
+              await getForumsAssigns(context);
+            },
+          ),
+        ],
         ),
       body: Column(
         children: [
-          // loading
-          // ? Container(
-          //   child: Column(
-          //     children: [
-          //       SizedBox(height: 2),
-          //       LinearProgressIndicator(
-          //         minHeight: 4,
-          //         color: Color(0xFFCF118C),
-          //         backgroundColor: Colors.grey,
-          //       )
-          //     ],
-          //   )
-          // )
-          // : connected
-          //   ? SizedBox()
-          //   : Container(
-          //     child: Text('εκτός σύνδεσης', style: TextStyle(color: Colors.red),),
-          // ),
+          loading
+          ? Container(
+            child: Column(
+              children: [
+                SizedBox(height: 2),
+                LinearProgressIndicator(
+                  minHeight: 4,
+                  color: Color(0xFFCF118C),
+                  backgroundColor: Colors.grey,
+                )
+              ],
+            )
+          )
+          : connected
+            ? SizedBox()
+            : Container(
+              child: Text('εκτός σύνδεσης', style: TextStyle(color: Colors.red),),
+          ),
           assignsExist
           ? Card(
               child: ListTile(

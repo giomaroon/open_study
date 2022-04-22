@@ -22,14 +22,12 @@ class HttpServices {
     try {
       var response = await get(url);//.timeout(Duration(seconds: 10));
       print('........get: '+loginLink);
-      print(response.statusCode);
-      print(response.headers);
-      print(response.headers['set-cookie']);
-
+      //print(response.statusCode);
+      //print(response.headers);
+      //print(response.headers['set-cookie']);
       //moodleSession=response.headers['set-cookie'].toString().substring(0,49);
       moodleSession=response.headers['set-cookie'].toString().split(';')[0];
-
-      print(moodleSession);
+      //print(moodleSession);
       html = parse(response.body);
       logintoken=html.getElementsByClassName('modal-body')[0].children[0].children[6].attributes['value'];
       //print(logintoken);
@@ -38,11 +36,11 @@ class HttpServices {
       return noConnection;
     }
 
-    print('....post....');
+    //print('....post....');
 
     // (2)...POST: Study/login with cookie - moodleSession1 , Get MoodleSession2...
     cookie = { 'cookie' : '$moodleSession; '};
-    print(cookie);
+    //print(cookie);
     try {
       var request = Request('POST', url)
         ..headers.addAll(cookie)
@@ -50,12 +48,12 @@ class HttpServices {
         ..bodyFields = {'username': username, 'password' : password,
           'anchor' : '', 'logintoken' : logintoken??''}
         ..followRedirects = false;
-      print(request.headers);
-      print(request.body);
+      //print(request.headers);
+      //print(request.body);
       var responseStream = await request.send();
-      print('login response status code and headers:');
-      print(responseStream.statusCode);
-      print(responseStream.headers);
+      //print('login response status code and headers:');
+      //print(responseStream.statusCode);
+      //print(responseStream.headers);
       //print(responseStream.headers['location']);
       if (responseStream.headers['location'] == loginLink) {
         print('no user');
@@ -63,7 +61,7 @@ class HttpServices {
       }
       moodleSession=responseStream.headers['set-cookie'].toString().split(';')[0];
       //moodleSession=responseStream.headers['set-cookie'].toString().substring(0,49);
-      print(moodleSession);
+      //print(moodleSession);
     } catch(err) {
       print(err);
       return noConnection;
@@ -101,14 +99,15 @@ class HttpServices {
     // reconnect, get new moodleSession and get html
     if (response==null || response.headers['location'] == loginLink) {
       print('get html reconnecting...');
-      if (activeUserId==0) {
+      if (activeUserId==0 || activeUserId==null) {
         var prefs = await SharedPreferences.getInstance();
         activeUserId = prefs.getInt('userId');
+        print(activeUserId);
       }
       try {
         var user = await DatabaseServices.instance.getUser(id: activeUserId);
         moodleSession=await loginStudy(user.username, user.password);
-        print(moodleSession);
+        //print(moodleSession);
         if (moodleSession!='no connection' && moodleSession!='auth error') {
           cookie = { 'Cookie' : ' $moodleSession; '};
           response = await get(url, headers: cookie);
@@ -132,38 +131,44 @@ class HttpServices {
   }
 
   //... methods for collecting data from parsed html
+
   List<Event> getEvents(Document html, int userId) {
     List<Event> eventList=[];
+
+    //...get webexLinks...
     var htmlWebex= html.getElementsByClassName('oss-info-container');
     var webexLinks={};
-    //...get webexLinks...
-    try {
-      for (int i=0; i<htmlWebex.length; ++i) {
-        var id=htmlWebex[i].attributes['id']!.split('-')[3];
-        var link=htmlWebex[i].getElementsByTagName('a')[2].attributes['href'];
-        webexLinks[id]=link;
+    if (htmlWebex.isNotEmpty) {
+      try {
+        for (int i=0; i<htmlWebex.length; ++i) {
+          var id=htmlWebex[i].attributes['id']!.split('-')[3];
+          var link=htmlWebex[i].getElementsByTagName('a')[2].attributes['href'];
+          webexLinks[id]=link;
+        }
+      } catch(err) {
+        print(err);
       }
-    } catch(err) {
-      print(err);
     }
-    var htmlEvents=html.getElementsByClassName('event');
 
-    try {
-      for (int i=0; i<htmlEvents.length; i=i+1) {
-        //print(htmlEvents[i]);
-        var htmlId = htmlEvents[i].children[1].attributes['data-event-id'];
-        eventList.add(Event(
-            link: htmlEvents[i].children[1].attributes['data-event-id']!,
-            title: htmlEvents[i].children[1].text,
-            dateTime: htmlEvents[i].children[2].text,
-            dateTimeParsed: getEventDateTime(htmlEvents[i].children[2].text).toString(),
-            webex: webexLinks[htmlId]??'',
-            notificationId: 0,
-            userId: userId
-        ));
+    var htmlEvents=html.getElementsByClassName('event');
+    if (htmlEvents.isNotEmpty) {
+      try {
+        for (int i=0; i<htmlEvents.length; i=i+1) {
+          //print(htmlEvents[i]);
+          var htmlId = htmlEvents[i].children[1].attributes['data-event-id'];
+          eventList.add(Event(
+              link: htmlEvents[i].children[1].attributes['data-event-id']!,
+              title: htmlEvents[i].children[1].text,
+              dateTime: htmlEvents[i].children[2].text,
+              dateTimeParsed: getEventDateTime(htmlEvents[i].children[2].text).toString(),
+              webex: webexLinks[htmlId]??'',
+              notificationId: 0,
+              userId: userId
+          ));
+        }
+      } catch(err) {
+        print(err);
       }
-    } catch(err) {
-      print(err);
     }
     return eventList;
   }

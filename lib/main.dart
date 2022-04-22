@@ -23,7 +23,7 @@ void main() async {
 
   Workmanager().initialize(
       callbackDispatcher,
-      //isInDebugMode: true
+      isInDebugMode: true
   );
 
   HttpOverrides.global = new MyHttpOverrides();

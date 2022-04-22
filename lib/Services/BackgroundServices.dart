@@ -208,7 +208,8 @@ Future<void> activateEventNotifications(bool on, int userId) async {
       '1',
       'event',
       initialDelay: Duration(minutes: 5),
-      frequency: Duration(hours: 12)
+      frequency: Duration(hours: 10),
+      existingWorkPolicy: ExistingWorkPolicy.append
     );
   } else {
     await Workmanager().cancelByUniqueName('1');
@@ -234,10 +235,11 @@ Future<void> activatePostNotifications({required int time}) async {
   if (time!=0) {
     //print('post notif is on: '+time.toString());
     await Workmanager().registerPeriodicTask(
-        '2',
-        'post',
-        initialDelay: Duration( minutes: 10),
-        frequency: Duration(hours: time)
+      '2',
+      'post',
+      initialDelay: Duration(minutes: 10),
+      frequency: Duration(hours: time),
+      existingWorkPolicy: ExistingWorkPolicy.append
     );
   }
 }
@@ -248,7 +250,8 @@ Future<void> activateGradeNotifications(bool on) async {
       '3',
       'grade',
       initialDelay: Duration(minutes: 15),
-      frequency: Duration(hours: 24)
+      frequency: Duration(hours: 16),
+      existingWorkPolicy: ExistingWorkPolicy.append
     );
   } else {
     await Workmanager().cancelByUniqueName('3');

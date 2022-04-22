@@ -253,33 +253,49 @@ class DatabaseServices {
       return 0;
     } else {
       var table = _newData[0].runtimeType.toString();
-      //print(table);
+
       try {
-        var oldDataLinks = await db.query(table, columns: ['link'],
-                                       where: '$whereId = ?', whereArgs: [id]);
-        //......check for new object and insert to DB........
+        // get links from oldData and newData
+        var oldDataLinks = await db.query(
+            table, columns: ['link'], where: '$whereId = ?', whereArgs: [id]
+        );
         var newDataLinks = [];
-        _newData.forEach((e) {
-          newDataLinks.add(e.link);
-        });
+        _newData.forEach((e) => newDataLinks.add(e.link));
+
         for (var el in oldDataLinks) {
-          //  check if objects in DB exist in new htmlObjects and if not remove them
-          if (newDataLinks.contains(el['link'])==false) {
-            await db.delete(table, where: 'link=? AND $whereId=?', whereArgs: [el['link'], id]);
+          //  if newData not contain el of oldData then remove el from DB
+          //  else (if newData = Forum or Discussion then update them)
+          //  remove el from newData
+          if (!newDataLinks.contains(el['link'])) {
+            //TODO db.execute('PRAGMA foreign_keys=ON');
+            await db.delete(
+                table, where: 'link=? AND $whereId=?', whereArgs: [el['link'], id]);
           } else {
-            // remove existed htmlObjects that allready exist
             if (table=='Forum') {
-              var newDataItemList=_newData.where((element) => element.link==el['link']).toList();
+              var newDataItemList=_newData.where(
+                      (element) => element.link==el['link']).toList();
               if (newDataItemList.isNotEmpty) {
-                    await db.update(table, {'unread': newDataItemList[0].unread},
-                        where: 'link=? AND courseId=?', whereArgs: [newDataItemList[0].link, id]);
+                    await db.update(
+                        table, {'unread': newDataItemList[0].unread},
+                        where: 'link=? AND courseId=?',
+                        whereArgs: [newDataItemList[0].link, id]);
               }
             } else if (table=='Discussion') {
-              var newDataItemList=_newData.where((element) => element.link==el['link']).toList();
+              var newDataItemList=_newData.where(
+                      (element) => element.link==el['link']).toList();
               if (newDataItemList.isNotEmpty) {
-                await db.update(table, {'replies': newDataItemList[0].replies, 'repliesUnread':newDataItemList[0].repliesUnread},
-                    where: 'link=? AND forumId=?', whereArgs: [newDataItemList[0].link, id]);
-                //print('kaka');
+                await db.update(
+                    table,
+                    {
+                      'authorLast': newDataItemList[0].authorLast,
+                      'dateTime': newDataItemList[0].dateTime,
+                      'dateTimeParsed': newDataItemList[0].dateTimeParsed,
+                      'replies': newDataItemList[0].replies,
+                      'repliesUnread':newDataItemList[0].repliesUnread,
+                    },
+                    where: 'link=? AND forumId=?',
+                    whereArgs: [newDataItemList[0].link, id]
+                );
               }
             }
             _newData.removeWhere((item) => item.link == el['link']);
@@ -298,6 +314,7 @@ class DatabaseServices {
     //print('DB updated');
     return rows;
   }
+
 
   Future<List<dynamic>> getObjectsById({Object? object, int? id}) async {
     Database db = await instance.database;
