@@ -208,7 +208,7 @@ Future<void> activateEventNotifications(bool on, int userId) async {
       '1',
       'event',
       initialDelay: Duration(minutes: 5),
-      frequency: Duration(hours: 10),
+      frequency: Duration(hours: 8),
       existingWorkPolicy: ExistingWorkPolicy.append
     );
   } else {
@@ -250,7 +250,7 @@ Future<void> activateGradeNotifications(bool on) async {
       '3',
       'grade',
       initialDelay: Duration(minutes: 15),
-      frequency: Duration(hours: 16),
+      frequency: Duration(hours: 12),
       existingWorkPolicy: ExistingWorkPolicy.append
     );
   } else {

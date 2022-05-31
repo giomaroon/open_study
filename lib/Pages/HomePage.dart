@@ -10,8 +10,8 @@ import '../Services/DatabaseServices.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage(
-      {this.html,       
-       Key? key}) : super(key: key);
+      {this.html,
+        Key? key}) : super(key: key);
 
   final Document? html;
 
@@ -42,8 +42,8 @@ class _HomePageState extends State<HomePage> {
       } else {
         print('connected');
         studentName = html!.getElementsByClassName('usertext mr-1').isNotEmpty
-        ? html!.getElementsByClassName('usertext mr-1')[0].text
-        :'';
+            ? html!.getElementsByClassName('usertext mr-1')[0].text
+            :'';
       }
     } else {
       html = widget.html;
@@ -83,14 +83,14 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Color(0xFFCF118C),
         title: Center(
           child:
-            Text(
-              'STUDY',
-              style: TextStyle(
+          Text(
+            'STUDY',
+            style: TextStyle(
                 color: Colors.white,
                 fontSize: 26,
                 fontWeight: FontWeight.bold
-              ),
             ),
+          ),
         ),
         //centerTitle: true,
         actions: [
@@ -160,15 +160,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Expanded(
                     child: RichText(
-                      textAlign: TextAlign.start,
-                      text: TextSpan(
-                        text: studentName??'',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold
+                        textAlign: TextAlign.start,
+                        text: TextSpan(
+                          text: studentName??'',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold
                           ),
-                      )
+                        )
                     ),
                   ),
                 ],
@@ -196,7 +196,7 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder:
                         (context) => CoursesListPage(html: html,)));
-                    },
+                  },
                 ),
               ),
             ),

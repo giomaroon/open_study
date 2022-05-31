@@ -80,6 +80,10 @@ class _AssignsPageState extends State<AssignsPage> {
             });
           }
         }
+      } else {
+        setState(() {
+          loading=false;
+        });
       }
     } else if (widget.payloadCourseId != null) {
       print('widget.course is null, get courseId from payload');

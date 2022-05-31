@@ -213,23 +213,23 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   TextButton(
-                    child: Text('Διαφωνώ',
-                        style: TextStyle(
-                            color: Colors.grey[800],
-                            fontSize: 20
-                        )
-                    ),
-                    onPressed: () {
-                      agree=false;
-                      Navigator.pop(context);
-                    }
+                      child: Text('Διαφωνώ',
+                          style: TextStyle(
+                              color: Colors.grey[800],
+                              fontSize: 20
+                          )
+                      ),
+                      onPressed: () {
+                        agree=false;
+                        Navigator.pop(context);
+                      }
                   ),
                 ],
               ),
             ],
           ),
     );
-  return agree;
+    return agree;
   }
 
   Future<dynamic> aboutApp(BuildContext loginPageContext) async {
@@ -277,21 +277,25 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                onPressed: () {aboutApp(context);},
-                icon: Icon(Icons.info_outline_rounded,
-                  size: 36,
-                  color: Color(0xFFA50D70),
-                )
+                  onPressed: () {aboutApp(context);},
+                  icon: Icon(Icons.info_outline_rounded,
+                    size: 36,
+                    color: Color(0xFFA50D70),
+                  )
               ),
               SizedBox(height: 20,),
-              Image(image: AssetImage('assets/logoEAP.png')),
-              SizedBox(height: 50),
+              Image(
+                image: AssetImage('assets/openStudyLogo3.png'),
+                width: 110,
+                height: 110,
+              ),
+              SizedBox(height: 30),
               Container(
                 color: Color(0xFFCF118C),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
                   child: Text(
-                    'Είσοδος με στοιχεία μητρώου',
+                      'Είσοδος με στοιχεία μητρώου',
                       style: TextStyle(color: Colors.white,fontSize: 14)
                   ),
                 ),
@@ -304,11 +308,11 @@ class _LoginPageState extends State<LoginPage> {
                     Card(
                       child: TextFormField(
                         decoration: InputDecoration(
-                          labelText: '  όνομα χρήστη',
-                          floatingLabelStyle: TextStyle(color: Colors.grey[700]),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey)
-                          )
+                            labelText: '  όνομα χρήστη',
+                            floatingLabelStyle: TextStyle(color: Colors.grey[700]),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey)
+                            )
                         ),
                         validator: (val) {
                           if (val == null || val.isEmpty) {
@@ -369,15 +373,15 @@ class _LoginPageState extends State<LoginPage> {
                 height: 40,
                 child: Center(
                   child: Text(authResultMessage,
-                  style: TextStyle(fontSize: 18, color: Colors.red)),
+                      style: TextStyle(fontSize: 18, color: Colors.red)),
                 ),
               ),
               ElevatedButton(
                 child: Text('Σύνδεση',
-                      style: TextStyle(color: Colors.white,fontSize: 20)
-                  ),
+                    style: TextStyle(color: Colors.white,fontSize: 20)
+                ),
                 style: ButtonStyle(
-                  backgroundColor:
+                    backgroundColor:
                     MaterialStateProperty.resolveWith((states) => Color(0xFFCF118C))
                 ),
                 onPressed: () async {

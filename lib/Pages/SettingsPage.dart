@@ -24,7 +24,10 @@ class _SettingsPageState extends State<SettingsPage> {
   int postNotifTime=0;
   User? user;
   var db=DatabaseServices.instance;
-  Map<int,int> valueFromTime={0:0,4:1,8:2,12:3,24:4};
+  //Map<int,int> timeToValue={0: 0, 4: 1, 8: 2, 12: 3, 24: 4};
+  Map<int,int> timeToValue={0: 0, 1: 1, 2: 2, 3: 3, 4:4, 8: 5, 12: 6, 24: 7};
+  //Map<int,int> valueToTime={0: 0, 4: 1, 8: 2, 12: 3 ,24: 4};
+  Map<int,int> valueToTime={0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 8, 6: 12, 7: 24};
 
   Future<void> getUserSettings() async {
     user = await db.getUser(id: activeUserId);
@@ -138,12 +141,13 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           child: Slider(
                             min: 0,
-                            max: 4,
-                            divisions: 4,
-                            value: valueFromTime[postNotifTime]!.toDouble(),
+                            max: 7,
+                            divisions: 7,
+                            value: timeToValue[postNotifTime]!.toDouble(),
                             onChanged: (a) {
                               setState(() {
-                                postNotifTime=(4*a+a*(a-1)*(a-2)*(a-3)/3).toInt();
+                                postNotifTime = valueToTime[a]!;
+                                //postNotifTime=(4*a+a*(a-1)*(a-2)*(a-3)/3).toInt();
                               });
                             },
                             onChangeEnd: (a) async {
