@@ -213,10 +213,13 @@ class HttpServices {
   }
 
   String getGrade(Document html) {
+
     var htmlGrade=html.getElementsByTagName('tbody');
-    if (htmlGrade.length==2) {
+    print(htmlGrade);
+    if (htmlGrade.length>=2) {
       try {
         var grade=htmlGrade[1].children[0].children[1].text; //TODO check if is number
+        print(grade);
         return grade;
       } catch(err) {
         print(err);
@@ -292,9 +295,15 @@ class HttpServices {
       try {
         var htmlContent = htmlPosts[i].getElementsByClassName('posting fullpost')[0]
             .getElementsByTagName('p');
+        //print(htmlContent);
         var content='';
-        for (var p in htmlContent) {
-          content=content+'\n'+p.text+'\n';
+        if (htmlContent.isNotEmpty) {
+          for (var p in htmlContent) {
+            p.text;
+            content=content+'\n'+p.text+'\n';
+          }
+        } else {
+          content=htmlPosts[i].getElementsByClassName('posting fullpost')[0].text;
         }
         //print(content);
         postList.add(Post(
