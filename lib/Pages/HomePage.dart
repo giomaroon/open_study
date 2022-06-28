@@ -7,13 +7,17 @@ import '../main.dart' show activeUserId, notificationServices;
 import 'EventsPage.dart';
 import 'package:html/dom.dart' show Document;
 import '../Services/DatabaseServices.dart';
+import 'MessengerPage.dart';
+import 'package:badges/badges.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage(
-      {this.html,
+      {this.messageCounter,
+        this.html,
         Key? key}) : super(key: key);
 
   final Document? html;
+  final String? messageCounter;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -26,28 +30,50 @@ class _HomePageState extends State<HomePage> {
   User? user;
   bool loading=true;
   bool connected=true;
+  String messageCounter='0';
+  String sesskey='';
+  int? userStudyId;
 
   Future<void> getUserStudyHtml() async {
+
     user = await DatabaseServices.instance.getUser(id: activeUserId);
     setState(() {
       studentName=user?.studentName;
     });
+
     if (widget.html==null) {
-      print('homepage connecting...');
+      print('homepage: connecting...');
       var study=HttpServices();
-      html = await study.getHtml('https://study.eap.gr/my/');
+      html = await study.httpGetHtml('https://study.eap.gr/my/');
       if (html==null) {
         print('no connection');
         connected=false;
       } else {
-        print('connected');
-        studentName = html!.getElementsByClassName('usertext mr-1').isNotEmpty
-            ? html!.getElementsByClassName('usertext mr-1')[0].text
-            :'';
+        //print('connected');
+        if (html!.getElementsByClassName('usertext mr-1').isEmpty) {
+          print('didnt got study/my, didnt got studentname');
+        } else {
+          studentName = html!.getElementsByClassName('usertext mr-1')[0].text;
+          if (html!.getElementsByClassName('count-container').isNotEmpty) {
+            messageCounter=html!.getElementsByClassName('count-container')[0].text;
+            print('messc count: $messageCounter');
+          }
+        }
       }
     } else {
       html = widget.html;
+      messageCounter=widget.messageCounter!;
     }
+    try {
+      sesskey=html!.getElementsByClassName('usermenu')[0].getElementsByTagName('li')[9].children[0].attributes['href']!.split('?')[1];
+      //print(sesskey);
+      var getStudyUserId=html!.getElementsByClassName('usermenu')[0].getElementsByTagName('li')[3].children[0].attributes['href']!.split('=')[1];
+      //print(getStudyUserId);
+      userStudyId=int.tryParse(getStudyUserId.toString())!;
+    } catch (err) {
+      print('err');
+    }
+
     setState(() {
       loading=false;
     });
@@ -55,20 +81,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    //print('homepage init');
     getUserStudyHtml();
-    //notificationServices.initializeNotifications();
     notificationServices.requestIOSPermissions();
     notificationServices.onClickNotification(context);
-    //onClickNotification();
     notificationServices.onClickNotificationIOS(context);
-    //onClickNotificationIOS();
     super.initState();
   }
 
   @override
   void dispose() {
-    //print('homepage dispose');
     notificationServices.streamNotification.close();
     notificationServices.streamNotificationIOS.close();
     super.dispose();
@@ -76,9 +97,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    //print('homepage');
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Color(0xFFE8E8E8), //Colors.grey[300],
       appBar: AppBar(
         backgroundColor: Color(0xFFCF118C),
         title: Center(
@@ -94,26 +114,33 @@ class _HomePageState extends State<HomePage> {
         ),
         //centerTitle: true,
         actions: [
-          // connected
-          //     ? SizedBox()
-          //     : IconButton(
-          //       icon: Icon(Icons.refresh, size: 30),
-          //       onPressed: () async{
-          //         setState(() {
-          //           loading=true;
-          //           connected=true;
-          //         });
-          //         await Future.delayed(Duration(seconds: 1));
-          //         await getUserStudyHtml();
-          //       },
-          //     ),
-          IconButton(
-            icon: Icon(Icons.settings, size: 30),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder:
-                  (context) => SettingsPage(user: user)));
-            },
+          Badge(
+            showBadge:  messageCounter!='0',
+            badgeContent: Text(messageCounter),
+            position: BadgePosition.topEnd(top: 2, end: 2),
+            child: IconButton(
+              icon: Icon(Icons.messenger, size: 34),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder:
+                    (context) => MessengerPage(sesskey: sesskey,
+                        userStudyId: userStudyId)))
+                    .then((value) {
+                  //loading=true;
+                  getUserStudyHtml();
+
+                }
+                );
+              },
+            ),
           ),
+          SizedBox(width: 6,)
+          // IconButton(
+          //   icon: Icon(Icons.settings, size: 30),
+          //   onPressed: () {
+          //     Navigator.push(context, MaterialPageRoute(builder:
+          //         (context) => SettingsPage(user: user)));
+          //   },
+          // ),
         ],
       ),
       body: SingleChildScrollView(
@@ -148,12 +175,17 @@ class _HomePageState extends State<HomePage> {
                     width: 18,
                   ),
                   //Image.network('https://study.eap.gr/pluginfile.php/170693/user/icon/lambda/f1.jpg'),
-                  CircleAvatar(
-                    radius: 26,
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.grey[500],
-                    child: Icon(Icons.person, size: 36,),
-                    //Image.network('https://study.eap.gr/pluginfile.php/170693/user/icon/lambda/f1?rev=16938601')
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder:
+                          (context) => SettingsPage(user: user)));
+                    },
+                    child: CircleAvatar(
+                      radius: 26,
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.grey[500],
+                      child: Icon(Icons.person, size: 36,),
+                    ),
                   ),
                   SizedBox(
                     width: 20,
@@ -228,124 +260,96 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             // TextButton(
-            //   child: Text('Μαθήματα', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //   onPressed: () {
-            //       Navigator.push(context, MaterialPageRoute(builder:
-            //           (context) => CoursesListPage(html: html,)));
-            //     }
-            // ),
-            // ElevatedButton(
-            //   child: Text('Επικείμενα Γεγονότα', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //   style: ButtonStyle(
-            //     backgroundColor:
-            //     MaterialStateProperty.resolveWith((states) => Colors.white)
-            //     ),
-            //     onPressed: () {
-            //       Navigator.push(context, MaterialPageRoute(builder:
-            //           (context) => EventsPage(html: html)));
-            //     }
-            // ),
-
-            // TextButton(
-            //     child: Text('notification 1', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //     onPressed: () async {
-            //       var db = DBServices.instance;
-            //       var posts= await db.getObjectsById(object: Post, id: 6) as List<Post>;
-            //       print(posts.map((e) => e.toMap()));
-            //       print(posts.last.toMap());
-            //       await notificationServices.showNotification(
-            //           id: 14,
-            //           title: 'Δεν υπάρχει εκφώνηση 2ης εργασιάς'+' : '+posts.last.author,
-            //           body: posts.last.content,
-            //           payload: 6.toString() + ' ' + '/PostsPage'
-            //       );
+            //   child: Text('SP'),
+            //   onPressed: () async {
+            //     var prefs = await SharedPreferences.getInstance();
+            //     //var payload = prefs.getString('payload');
+            //     //var initialRoute=prefs.getString('initialRoute');
+            //     var tick=prefs.getString('tick');
+            //     //print('payload: $payload');
+            //     //print('initialRoute: $initialRoute');
+            //     print('tick: $tick');
             //
-            //       // await notificationServices.showNotification(
-            //       //   title: 'title 1',
-            //       //   body: 'body 1',
-            //       //   payload: '1 /CoursesListPage/CoursePage'
-            //       // );
-            //     }
+            //   },
             // ),
             // TextButton(
-            //     child: Text('notification scheduled', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //     onPressed: () async {
-            //       await notificationServices.showNotificationScheduled(
-            //           title: 'title 1',
-            //           body: 'body 1',
-            //           payload: '1 /CoursesListPage/CoursePage'
-            //       );
-            //     }
+            //   child: Text('DB'),
+            //   onPressed: () async {
+            //     var db = DatabaseServices.instance;
+            //     var udb = await db.getUsers();
+            //     var cdb = await db.getCourses();
+            //     var edb = await db.getEvents();
+            //     var fdb = await db.getForums();
+            //     var ddb = await db.getDiscuccions();
+            //     var pdb = await db.getPosts();
+            //     var gdb = await db.getAssigns();
+            //     print('users: '+udb.length.toString());
+            //     print(udb.map((e) => e.toMap()));
+            //     print('courses: '+cdb.length.toString());
+            //     print(cdb.map((e) => e.toMap()));
+            //     print('events: '+edb.length.toString());
+            //     // edb.forEach((element) {print(element.linkId);});
+            //     print(edb.map((e) => e.toMap()));
+            //     print('forums: '+fdb.length.toString());
+            //     print(fdb.map((e) => e.toMap()));
+            //     print('discussions : '+ddb.length.toString());
+            //     print(ddb.map((e) => e.toMap()));
+            //     print('posts: '+pdb.length.toString());
+            //     print(pdb.map((e) => e.toMap()));
+            //     print('grades: '+gdb.length.toString());
+            //     print(gdb.map((e) => e.toMap()));
+            //   },
             // ),
             // TextButton(
-            //     child: Text('workmanager 1', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //     onPressed: () {
-            //       // Workmanager().registerPeriodicTask(
-            //       //     '1',
-            //       //     'time',
-            //       //     frequency: Duration(minutes: 15),
-            //       //     initialDelay: Duration(seconds: 10)
-            //       // );
-            //       Workmanager().registerOneOffTask(
-            //           '1',
-            //           'event',
-            //           initialDelay: Duration(seconds: 12));
-            //     }
-            // ),
-            // TextButton(
-            //     child: Text('workmanager 2', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //     onPressed: () {
-            //       Workmanager().registerOneOffTask(
-            //           '2',
-            //           'post',
-            //           initialDelay: Duration(seconds: 12)
-            //       );
-            //     }
-            // ),
-            // TextButton(
-            //     child: Text('workmanager 3', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //     onPressed: () {
-            //       Workmanager().registerOneOffTask(
-            //           '3',
-            //           'grade',
-            //           initialDelay: Duration(seconds: 12)
-            //       );
-            //     }
-            // ),
-            // TextButton(
-            //     child: Text('workmanager 4', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //     onPressed: () {
-            //       Workmanager().registerOneOffTask(
-            //           '4',
-            //           'time',
-            //           initialDelay: Duration(seconds: 5)
-            //       );
-            //     }
-            // ),
-            // TextButton(
-            //     child: Text('workmanager cancel', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //     onPressed: () {
-            //       // Workmanager().registerPeriodicTask(
-            //       //     '1',
-            //       //     'time',
-            //       //     frequency: Duration(minutes: 15),
-            //       //     initialDelay: Duration(seconds: 10)
-            //       // );
-            //       Workmanager().cancelAll();
-            //       //Workmanager().cancelByUniqueName('1');
-            //     }
-            // ),
-            // TextButton(
-            //     child: Text('notification cancel', style: TextStyle(color: Colors.black,fontSize: 18)),
-            //     onPressed: () {
-            //       Workmanager().cancelAll();
-            //       notificationServices.notifications.cancelAll();
-            //       notificationServices.notifications.cancel(0);
-            //     }
-            // ),
+            //   child: Text('DB2'),
+            //   onPressed: () async {
+            //     var db = DatabaseServices.instance;
+            //     var udb = await db.getUsers();
+            //     var cdb = await db.getCourses();
+            //     var edb = await db.getEvents();
+            //     var fdb = await db.getForums();
+            //     var ddb = await db.getDiscuccions();
+            //     var pdb = await db.getPosts();
+            //     var gdb = await db.getAssigns();
+            //     var contdb= await db.getContacts();
+            //     var messdb= await db.getMessages();
+            //     print('users: '+udb.length.toString());
+            //     print(udb.map((e) => e.toMap()));
+            //     print('courses: '+cdb.length.toString());
+            //     print(cdb.map((e) => e.toMap()));
+            //     print('events: '+edb.length.toString());
+            //     // edb.forEach((element) {print(element.linkId);});
+            //     print(edb.map((e) => e.toMap()));
+            //     print('forums: '+fdb.length.toString());
+            //     print(fdb.map((e) => e.toMap()));
+            //     print('discussions : '+ddb.length.toString());
+            //     print(ddb.map((e) => e.toMap()));
+            //     print('posts: '+pdb.length.toString());
+            //     print(pdb.map((e) => e.toMap()));
+            //     print('grades: '+gdb.length.toString());
+            //     print(gdb.map((e) => e.toMap()));
+            //     print('contacts: '+contdb.length.toString());
+            //     print(contdb.map((e) => e.toMap()));
+            //     print('messages: '+messdb.length.toString());
+            //     print(messdb.map((e) => e.toMap()));
+            //   },
+            // )
           ],
         ),
       ),
+      // floatingActionButton: Badge(
+      //   showBadge:  messageCounter!='0',
+      //   badgeContent: Text(messageCounter),
+      //   position: BadgePosition.topEnd(top: 20, end: 2),
+      //   child: IconButton(
+      //     padding: EdgeInsets.all(30),
+      //     icon: Icon(Icons.message, size: 50, color: Colors.white,),
+      //     onPressed: () {
+      //       Navigator.push(context, MaterialPageRoute(builder:
+      //           (context) => MessengerPage(sesskey: sesskey, userStudyId: userStudyId,)));
+      //     },
+      //   ),
+      // ),
     );
   }
 }

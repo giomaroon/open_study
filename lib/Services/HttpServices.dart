@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+
 import 'package:gio_app/main.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:html/parser.dart';
@@ -5,6 +8,7 @@ import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Models.dart';
 import 'DatabaseServices.dart';
+
 
 class HttpServices {
 
@@ -19,49 +23,42 @@ class HttpServices {
     String? logintoken;
     // (1)...GET: Study/login , moodleSession1, logintoken..............
     var url=Uri.parse(loginLink);
+
     try {
+      print('start login... get: '+loginLink);
       var response = await get(url);//.timeout(Duration(seconds: 10));
-      print('........get: '+loginLink);
-      //print(response.statusCode);
-      //print(response.headers);
-      //print(response.headers['set-cookie']);
-      //moodleSession=response.headers['set-cookie'].toString().substring(0,49);
+      print(response.statusCode);
       moodleSession=response.headers['set-cookie'].toString().split(';')[0];
-      //print(moodleSession);
       html = parse(response.body);
       logintoken=html.getElementsByClassName('modal-body')[0].children[0].children[6].attributes['value'];
-      //print(logintoken);
     } catch(err) {
       print(err);
       return noConnection;
     }
 
-    //print('....post....');
 
     // (2)...POST: Study/login with cookie - moodleSession1 , Get MoodleSession2...
     cookie = { 'cookie' : '$moodleSession; '};
     //print(cookie);
     try {
+      print('login... post: '+url.toString());
       var request = Request('POST', url)
         ..headers.addAll(cookie)
         ..headers.addAll({'origin': 'https://study.eap.gr', 'referer': loginLink})
         ..bodyFields = {'username': username, 'password' : password,
           'anchor' : '', 'logintoken' : logintoken??''}
         ..followRedirects = false;
-      //print(request.headers);
-      //print(request.body);
+
       var responseStream = await request.send();
-      //print('login response status code and headers:');
-      //print(responseStream.statusCode);
-      //print(responseStream.headers);
-      //print(responseStream.headers['location']);
+      print(responseStream.statusCode);
+
       if (responseStream.headers['location'] == loginLink) {
         print('no user');
         return 'auth error';
       }
       moodleSession=responseStream.headers['set-cookie'].toString().split(';')[0];
       //moodleSession=responseStream.headers['set-cookie'].toString().substring(0,49);
-      //print(moodleSession);
+      print('login... ok!  got: '+moodleSession);
     } catch(err) {
       print(err);
       return noConnection;
@@ -74,9 +71,9 @@ class HttpServices {
     return moodleSession;
   }
 
-  Future<Document?> getHtml(String link, {String? moodleSession}) async {
+  Future<Document?> httpGetHtml(String link, {String? moodleSession}) async {
     Document? html;
-    print('getting html....');
+
     var url=Uri.parse(link);
     if (moodleSession==null) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -86,8 +83,15 @@ class HttpServices {
     var response;
     // try get html with stored moodlSession
     try {
+      print('get html...  from: '+ link);
       response = await get(url, headers: cookie);
       // if moodleSession is old, throws exception: Redirect loop detected
+      print(response.statusCode);
+      if (response.statusCode!=200) {
+
+        print('connection error, retruning null html');
+        return html;
+      }
       html = parse(response.body);
       print('html got');
       return html;
@@ -98,11 +102,11 @@ class HttpServices {
     // if response is null or redirected to login page then
     // reconnect, get new moodleSession and get html
     if (response==null || response.headers['location'] == loginLink) {
-      print('get html reconnecting...');
+      print('error on getting html (bad moodleSession)');
       if (activeUserId==0 || activeUserId==null) {
         var prefs = await SharedPreferences.getInstance();
         activeUserId = prefs.getInt('userId');
-        print(activeUserId);
+        //print(activeUserId);
       }
       try {
         var user = await DatabaseServices.instance.getUser(id: activeUserId);
@@ -110,9 +114,11 @@ class HttpServices {
         //print(moodleSession);
         if (moodleSession!='no connection' && moodleSession!='auth error') {
           cookie = { 'Cookie' : ' $moodleSession; '};
+          print('get html of '+link);
           response = await get(url, headers: cookie);
           if (response.headers['location'] == loginLink) {
             //print('error');
+            print('redirecting to study/login, returnign null html');
             return html;
           } else {
             html = parse(response.body);
@@ -127,6 +133,8 @@ class HttpServices {
         print(err);
         return html;
       }
+    } else {
+      return html;
     }
   }
 
@@ -215,10 +223,10 @@ class HttpServices {
   String getGrade(Document html) {
 
     var htmlGrade=html.getElementsByTagName('tbody');
-    print(htmlGrade);
+    //print(htmlGrade);
     if (htmlGrade.length>=2) {
       try {
-        var grade=htmlGrade[1].children[0].children[1].text; //TODO check if is number
+        var grade=htmlGrade[1].children[0].children[1].text;
         print(grade);
         return grade;
       } catch(err) {
@@ -323,8 +331,255 @@ class HttpServices {
     return postList;
   }
 
+  Future<Map> httpGetJsonMessagesPreview({String? sesskey, String? userStudyId}) async {
+    Map jsonMessages={};
+
+    // .... POST MESSAGE REQUEST ..........
+    String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_data_for_messagearea_conversations';
+    var url=Uri.parse(link);
+
+    var payload=[{"index":0,"methodname":"core_message_data_for_messagearea_conversations",
+      "args":{"userid":userStudyId,"limitfrom":0,"limitnum":30}}];
+    var body = json.encode(payload);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var moodleSession = prefs.getString('moodleSession') ?? '';
+    Map<String,String> headers = {
+      'Content-type' : 'application/json',
+      'Cookie' : ' $moodleSession; ',
+      'origin': 'https://study.eap.gr',
+      'referer': 'https://study.eap.gr/message/index.php',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+
+    var jsonList=[];
+    try {
+      print('get jsonmessagespreview from http');
+      var response = await post(url, headers: headers, body: body); //, encoding: Encoding.getByName("utf-8"));
+      jsonList=json.decode(response.body);
+      //print(vvv[0]['data']['messages'][0]);
+      if (jsonList.isNotEmpty) {
+        jsonMessages= jsonList[0];
+      }
+      return jsonMessages;
+    } catch(err) {
+      print(err);
+      return {};
+    }
+  }
+
+  Future<void> httpSetMessagesRead ({String? sesskey, int? userStudyId, int? contactStudyId}) async {
+    String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_mark_all_messages_as_read';
+    var url=Uri.parse(link);
+
+    var payload=[{"index":0,"methodname":"core_message_mark_all_messages_as_read",
+      "args":{"useridto":userStudyId,"useridfrom":contactStudyId}}];
+    var body = json.encode(payload);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var moodleSession = prefs.getString('moodleSession') ?? '';
+    Map<String,String> headers = {
+      'Content-type' : 'application/json',
+      'Cookie' : ' $moodleSession; ',
+      'origin': 'https://study.eap.gr',
+      'referer': 'https://study.eap.gr/message/index.php',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+
+    try {
+      print('set messages read');
+      await post(url, headers: headers, body: body);
+    } catch(err) {
+      print(err);
+    }
+  }
+
+  Future<Map> httpGetJsonMessages({String? sesskey, int? userStudyId, int? contactStudyId}) async {
+    Map jsonMessages={};
+
+    // .... POST MESSAGE REQUEST ..........
+    String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_data_for_messagearea_messages';
+    var url=Uri.parse(link);
+
+    var payload=[{"index":0,"methodname":"core_message_data_for_messagearea_messages",
+      "args":{"currentuserid":userStudyId,"otheruserid":contactStudyId,"limitfrom":0,"limitnum":30,"newest":true}}];
+    var body = json.encode(payload);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var moodleSession = prefs.getString('moodleSession') ?? '';
+    Map<String,String> headers = {
+      'Content-type' : 'application/json',
+      'Cookie' : ' $moodleSession; ',
+      'origin': 'https://study.eap.gr',
+      'referer': 'https://study.eap.gr/message/index.php',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+
+    var jsonList=[];
+    try {
+      print('get jsonmessages from http');
+      var response = await post(url, headers: headers, body: body); //, encoding: Encoding.getByName("utf-8"));
+      jsonList=json.decode(response.body);
+      //print(vvv[0]['data']['messages'][0]);
+      if (jsonList.isNotEmpty) {
+        jsonMessages= jsonList[0];
+      }
+      return jsonMessages;
+    } catch(err) {
+      print(err);
+      return {};
+    }
+  }
+
+  Future<bool> httpSendMessage({String? text, String? sesskey, int? contactId}) async {
+
+    // .... POST MESSAGE REQUEST ..........
+    String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_send_instant_messages';
+    var url=Uri.parse(link);
+
+    // var payload=[{"index":0,"methodname":"core_message_data_for_messagearea_messages",
+    //   "args":{"currentuserid":studyUserId,"otheruserid":contactId,"limitfrom":0,"limitnum":20,"newest":true}}];
+
+    var payload=[{"index":0,"methodname":"core_message_send_instant_messages",
+      "args":{"messages":[{"touserid":contactId,"text":text}]}}];
+    var body = json.encode(payload);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var moodleSession = prefs.getString('moodleSession') ?? '';
+    Map<String,String> headers = {
+      'Content-type' : 'application/json',
+      'Cookie' : ' $moodleSession; ',
+      'origin': 'https://study.eap.gr',
+      'referer': 'https://study.eap.gr/message/index.php',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+
+    //var jsonList=[];
+    try {
+      await post(url, headers: headers, body: body); //, encoding: Encoding.getByName("utf-8"));
+      //jsonList=json.decode(response.body);
+      //print(vvv[0]['data']['messages'][0]);
+      return true;
+    } catch(err) {
+      print(err);
+      return false;
+    }
+  }
+
+  List<Contact> getContactsFromJson(Map json, int activeUserid) {
+    List<Contact> contactsList=[];
+    //var htmlMessenger=html.getElementsByClassName('contact');
+
+    try {
+      var num=0;
+      for (var e in json['data']['contacts']) {
+        contactsList.add(Contact(
+          //link = contactStudyId
+            link: e['userid'],
+            name: e['fullname'],
+            lastMessage: e['lastmessage'],
+            chatUpdateTime: '',
+            position: num++,
+            userId: activeUserid
+        ));
+      }
+    } catch(err) {
+      print(err);
+    }
+    return contactsList;
+  }
+
+  // List<Contact> getContacts(Document html, int activeUserid) {
+  //   List<Contact> contactsList=[];
+  //   var htmlMessenger=html.getElementsByClassName('contact');
+  //
+  //   try {
+  //     var num=0;
+  //     for (var el in htmlMessenger) {
+  //       contactsList.add(Contact(
+  //         //link = contactStudyId
+  //         link: int.tryParse(el.attributes['data-userid'].toString())!,
+  //         name: el.getElementsByClassName('name')[0].text.trim(),
+  //         lastMessage: el.getElementsByClassName('lastmessage')[0].children[1].text.trim(),
+  //         chatUpdateTime: '',
+  //         position: num++,
+  //         userId: activeUserid
+  //       ));
+  //     }
+  //   } catch(err) {
+  //     print(err);
+  //   }
+  //   return contactsList;
+  // }
+
+  Future<List<Message>> getMessagesFromJson({required Map jsonMessages, int? contactId}) async {
+
+    List<Message> messageList=[];
+    print('get messages from Json');
+
+    try {
+      for (var e in jsonMessages['data']['messages']) {
+        var blocktime='';
+        //print(e['text']);
+        if (e['displayblocktime']) {
+          blocktime=e['blocktime'];
+        }
+        messageList.add(Message(
+          link: e['id'],
+          position: e['position'],
+          text: e['text'].toString().replaceAll('<p>', '').replaceAll('</p>', '').replaceAll('<br>', ''),
+          timesent: e['timesent'],
+          blocktime: blocktime,
+          contactId: contactId,
+          //userId: userId,
+        ));
+      }
+      return messageList;
+    } catch(err) {
+      print(err);
+      return messageList;
+    }
+  }
+
+  // Future<bool> httpSendMessageDemo({String? text, String? sesskey, int? contactId}) async {
+  //
+  //   // .... POST MESSAGE REQUEST ..........
+  //   String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_send_instant_messages';
+  //   var url=Uri.parse(link);
+  //
+  //   // var payload=[{"index":0,"methodname":"core_message_data_for_messagearea_messages",
+  //   //   "args":{"currentuserid":studyUserId,"otheruserid":contactId,"limitfrom":0,"limitnum":20,"newest":true}}];
+  //
+  //   var payload=[{"index":0,"methodname":"core_message_send_instant_messages",
+  //     "args":{"messages":[{"touserid":contactId,"text":text}]}}];
+  //   var body = json.encode(payload);
+  //
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   var moodleSession = prefs.getString('moodleSession') ?? '';
+  //   Map<String,String> headers = {
+  //     'Content-type' : 'application/json',
+  //     'Cookie' : ' $moodleSession; ',
+  //     'origin': 'https://study.eap.gr',
+  //     'referer': 'https://study.eap.gr/message/index.php',
+  //     'X-Requested-With': 'XMLHttpRequest'
+  //   };
+  //
+  //   //var jsonList=[];
+  //   try {
+  //     var response = await post(url, headers: headers, body: body); //, encoding: Encoding.getByName("utf-8"));
+  //     //jsonList=json.decode(response.body);
+  //     //print(vvv[0]['data']['messages'][0]);
+  //     return true;
+  //   } catch(err) {
+  //     print(err);
+  //     return false;
+  //   }
+  // }
+
   // ... methods for parsing datetime string and return DateTime
+
   DateTime? getEventDateTime(String datetime) {
+    DateTime? dt;
     var now = DateTime.now();
     Map monthNum = {'Ιανουάριος': 1, 'Φεβρουάριος': 2, 'Μάρτιος': 3, 'Απρίλιος': 4,
       'Μάιος': 5, 'Ιούνιος': 6, 'Ιούλιος': 7, 'Αύγουστος': 8, 'Σεπτέμβριος': 9,
@@ -333,16 +588,13 @@ class HttpServices {
       'Ιουλίου': 7, 'Αυγούστου': 8, 'Σεπτεμβρίου': 9, 'Οκτωβρίου': 10,
       'Νοεμβρίου': 11, 'Δεκεμβρίου': 12};
     var datetimeList = datetime.split(', ');
-    //print(datetime);
-    //check if is 'Αύριο' or 'Σήμερα'....
-    // TODO try catch
     try {
       if (datetimeList[0]=='Αύριο') {
         var time = datetimeList[1].split(' » ')[0].split(':');
         var hour = int.tryParse(time[0])?? 0;
         var min = int.tryParse(time[1])?? 0;
         //var now = DateTime.now();
-        var dt = DateTime(now.year, now.month, now.day, hour, min);
+        dt = DateTime(now.year, now.month, now.day, hour, min);
         dt = dt.add(const Duration(days: 1));
         return dt;
       } else if (datetimeList[0]=='Σήμερα'){
@@ -351,7 +603,7 @@ class HttpServices {
         var hour = int.tryParse(time[0])?? 0;
         var min = int.tryParse(time[1])?? 0;
         //var now = DateTime.now();
-        var dt = DateTime(now.year, now.month, now.day, hour, min);
+        dt = DateTime(now.year, now.month, now.day, hour, min);
         return dt;
       } else {
         //print('a');
@@ -366,11 +618,12 @@ class HttpServices {
         //var now = DateTime.now();
         var year = month >= now.month? now.year : now.year+1;
         //print(year);
-        var dt = DateTime(year, month, day, hour, min);
+        dt = DateTime(year, month, day, hour, min);
         return dt;
       }
     } catch (err) {
       print(err);
+      return dt;
     }
   }
 

@@ -44,7 +44,7 @@ class _CoursePageState extends State<CoursePage> {
         forumList=_forumList;
       });
       var study = HttpServices();
-      var html = await study.getHtml(widget.course!.link);
+      var html = await study.httpGetHtml(widget.course!.link);
       if (html != null) {
         _forumList = study.getForums(html, widget.course!.id!);
         //print(_forumList.map((e) => e.toMap()));
@@ -62,6 +62,7 @@ class _CoursePageState extends State<CoursePage> {
             forumList=_forumList;
             assignsExist=_assignList.isNotEmpty;
             loading = false;
+            connected=true;
           });
         }
       } else {
@@ -90,7 +91,7 @@ class _CoursePageState extends State<CoursePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Color(0xFFE8E8E8), //Colors.grey[200],
       appBar: AppBar(
         backgroundColor: Color(0xFFCF118C),
         title: RichText(
@@ -235,7 +236,7 @@ class _CoursePageState extends State<CoursePage> {
                                 //loading=true;
                                 await getForumsAssigns(this.context);
                                 if (mounted) {
-                                  setState(() {}); // TODO loading = true
+                                  setState(() {});
                                 }
                               }
                             );

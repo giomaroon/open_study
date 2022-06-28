@@ -34,10 +34,10 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> chekcIfUserExists() async {
     var storage=FlutterSecureStorage();
     if (await storage.read(key: 'dbpassGenerated') != 'yes') {
-      await storage.write(key: 'dbpass', value: username+password+'%D2ttd523');
+      await storage.write(key: 'dbpass', value: username+password);
       await storage.write(key: 'dbpassGenerated', value: 'yes');
     }
-    await storage.write(key: 'dbpass', value: username+password+'%D2ttd523');
+    await storage.write(key: 'dbpass', value: username+password);
     var db = await DatabaseServices.instance.database;
     var userExistsDB = await db.query('User', columns: ['id'],
         where: 'username=? AND password=?',
@@ -49,74 +49,16 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Future<void> loginProcedureOld(BuildContext context) async {
-  //   Document? html;
-  //   setState(() {
-  //     loading=true;
-  //   });
-  //   // call httpLogin and return auth result and html of study.gr/my
-  //   var study=HttpServices();
-  //   var loginResult = await study.loginStudy(username, password);
-  //   print(loginResult);
-  //
-  //   if (loginResult is Document) {
-  //     // get student name, create User, update DB, store activeUserId and push HomePage(html)
-  //     html=loginResult;
-  //     var studentName = html.getElementsByClassName('usertext mr-1').isNotEmpty
-  //         ? html.getElementsByClassName('usertext mr-1')[0].text
-  //         :'';
-  //     var user=User(
-  //         username: username,
-  //         password: password,
-  //         studentName: studentName,
-  //         eventNotification: 1,
-  //         postNotification: 8,
-  //         gradeNotification: 1,
-  //         eventsUpdateTime: '');
-  //
-  //     var db=DatabaseServices.instance;
-  //     userId = await db.updateUserSetNotif(user);
-  //
-  //     SharedPreferences prefs = await SharedPreferences.getInstance();
-  //     await prefs.setInt('userId', userId);
-  //     activeUserId=userId;
-  //
-  //     Navigator.pushReplacement(context, MaterialPageRoute(
-  //         builder: (context) => HomePage(html: html)));
-  //
-  //   } else if (loginResult=='no user'){
-  //     setState(() {
-  //       authResultMessage = 'λάθος στοιχεία'; //TODO  'αποτυχία σύνδεσης'
-  //       print(authResultMessage);
-  //       loading = false;
-  //     });
-  //   } else if (userExists){
-  //     SharedPreferences prefs = await SharedPreferences.getInstance();
-  //     await prefs.setInt('userId', userId);
-  //     activeUserId=userId;
-  //     var db=DatabaseServices.instance;
-  //     var user = await db.getUser(id: activeUserId);
-  //     await db.updateUserSetNotif(user);
-  //     Navigator.pushReplacement(context, MaterialPageRoute(
-  //         builder: (context) => HomePage(
-  //             html: html)));
-  //   } else {
-  //     setState(() {
-  //       authResultMessage = 'αδυναμία σύνδεσης';
-  //       loading = false;
-  //     });
-  //   }
-  // }
-
   Future<void> loginProcedure(BuildContext context) async {
     Document? html;
     setState(() {
       loading=true;
     });
-    // call httpLogin and return auth result and html of study.gr/my
+
+    // ......call httpLogin and return auth result and html of study.gr/my
     var study=HttpServices();
     var loginResult = await study.loginStudy(username, password);
-    print(loginResult);
+    print('login result: '+loginResult);
     if (loginResult=='auth error'){
       setState(() {
         authResultMessage = 'αποτυχία σύνδεσης';
@@ -124,13 +66,13 @@ class _LoginPageState extends State<LoginPage> {
         loading = false;
       });
     } else if (loginResult=='no connection') {
-      if (userExists){
+      if (userExists){ // update username, password and set notification settings
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setInt('userId', userId);
         activeUserId=userId;
         var db=DatabaseServices.instance;
         var user = await db.getUser(id: activeUserId);
-        await db.updateUserSetNotif(user);
+        await db.updateUserAndNotifSettings(user); //TODO if no connection, why update user?
         Navigator.pushReplacement(context, MaterialPageRoute(
             builder: (context) => HomePage(
                 html: html)));
@@ -141,36 +83,41 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     } else {
-      html = await study.getHtml('https://study.eap.gr/my/', moodleSession: loginResult);
-      // get student name, create User, update DB, store activeUserId and push HomePage(html)
-      String studentName='';
-      if (html!=null) {
-        try {
-          studentName = html.getElementsByClassName('usertext mr-1')[0].text;
-        } catch (err) {
-          print(err);
-        }
-      }
+      html = await study.httpGetHtml('https://study.eap.gr/my/', moodleSession: loginResult);
 
-      var user=User(
+      if (html!=null) {
+        //...... get student name, messages counter, create User, update DB, store activeUserId and push HomePage(html)
+        String studentName='';
+        String messageCounter='0';
+        if (html.getElementsByClassName('usertext mr-1').isNotEmpty) {
+          studentName = html.getElementsByClassName('usertext mr-1')[0].text;
+          if (html.getElementsByClassName('count-container hidden').isNotEmpty) {
+            messageCounter=html.getElementsByClassName('count-container hidden')[0].text;
+          }
+        }
+        var user=User(
           username: username,
           password: password,
           studentName: studentName,
           eventNotification: 1,
           postNotification: 8,
+          messageNotification: 8,
           gradeNotification: 1,
-          eventsUpdateTime: '');
+          eventsUpdateTime: '',
+          messengerUpdateTime: ''
+        );
 
-      var db=DatabaseServices.instance;
-      userId = await db.updateUserSetNotif(user);
+        var db=DatabaseServices.instance;
+        userId = await db.updateUserAndNotifSettings(user);
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('userId', userId);
-      activeUserId=userId;
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('userId', userId);
+        activeUserId=userId;
 
-      Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context) => HomePage(html: html)));
-
+        Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) => HomePage(html: html, messageCounter: messageCounter)
+        ));
+      }
     }
   }
 
@@ -242,7 +189,8 @@ class _LoginPageState extends State<LoginPage> {
                 'με τα μαθήματα που παρακολουθούν και πιο συγκεκριμένα:\n τα '
                 'επικείμενα γεγονότα (υποβολή εργασιών, ομαδικές '
                 'συμβουλευτικές συναντήσεις), τις αναρτήσεις στις ομάδες συζητήσεων '
-                '(forums)  και τη βαθμολογία των εργασιών και των εξετάσεων.\n '
+                '(forums), τα μηνύματα (επισκόπηση μηνυμάτων, αποστολή νέων)'
+                ' και τη βαθμολογία των εργασιών και των εξετάσεων.\n '
                 'Η ανάπτυξη της εφαρμογής έγινε στα πλαίσια διπλωματικής εργασιάς '
                 'και δεν αποτελεί επίσιμη υλοποίηση του ΕΑΠ.',
                 style: TextStyle(
@@ -397,16 +345,16 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 40,),
               // TextButton(
-              //   child: Text('DB'),
+              //   child: Text('DB1'),
               //   onPressed: () async {
-              //     var db = DBServices.instance;
+              //     var db = DatabaseServices.instance;
               //     var udb = await db.getUsers();
               //     var cdb = await db.getCourses();
               //     var edb = await db.getEvents();
               //     var fdb = await db.getForums();
               //     var ddb = await db.getDiscuccions();
               //     var pdb = await db.getPosts();
-              //     var gdb = await db.getGrades();
+              //     var gdb = await db.getAssigns();
               //     print('users: '+udb.length.toString());
               //     print(udb.map((e) => e.toMap()));
               //     print('courses: '+cdb.length.toString());
@@ -423,6 +371,40 @@ class _LoginPageState extends State<LoginPage> {
               //     print('grades: '+gdb.length.toString());
               //     print(gdb.map((e) => e.toMap()));
               //   },
+              // ),
+              // TextButton(
+              //   child: Text('DB2'),
+              //   onPressed: () async {
+              //     var db = DatabaseServices.instance;
+              //     var udb = await db.getUsers();
+              //     var cdb = await db.getCourses();
+              //     var edb = await db.getEvents();
+              //     var fdb = await db.getForums();
+              //     var ddb = await db.getDiscuccions();
+              //     var pdb = await db.getPosts();
+              //     var gdb = await db.getAssigns();
+              //     var contdb= await db.getContacts();
+              //     var messdb= await db.getMessages();
+              //     print('users: '+udb.length.toString());
+              //     print(udb.map((e) => e.toMap()));
+              //     print('courses: '+cdb.length.toString());
+              //     print(cdb.map((e) => e.toMap()));
+              //     print('events: '+edb.length.toString());
+              //     // edb.forEach((element) {print(element.linkId);});
+              //     print(edb.map((e) => e.toMap()));
+              //     print('forums: '+fdb.length.toString());
+              //     print(fdb.map((e) => e.toMap()));
+              //     print('discussions : '+ddb.length.toString());
+              //     print(ddb.map((e) => e.toMap()));
+              //     print('posts: '+pdb.length.toString());
+              //     print(pdb.map((e) => e.toMap()));
+              //     print('grades: '+gdb.length.toString());
+              //     print(gdb.map((e) => e.toMap()));
+              //     print('contacts: '+contdb.length.toString());
+              //     print(contdb.map((e) => e.toMap()));
+              //     print('messages: '+messdb.length.toString());
+              //     print(messdb.map((e) => e.toMap()));
+              //   },
               // )
             ],
           ),
@@ -432,10 +414,15 @@ class _LoginPageState extends State<LoginPage> {
       //   icon: Icon(Icons.account_circle),
       //   onPressed: () async {
       //     // Get a location using getDatabasesPath
+      //     // var db = await DatabaseServices.instance.database;
+      //     // await db.close();
+      //
       //     var databasesPath = await getDatabasesPath();
-      //     String path = join(databasesPath, 'studyAppDB.db');
+      //     String path = sss.join(databasesPath, 'studyAppDB.db');
       //     // Delete the database
       //     await deleteDatabase(path);
+      //     print('db deleted');
+      //
       //   },
       // ),
     );

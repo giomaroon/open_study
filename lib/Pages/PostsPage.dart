@@ -27,6 +27,7 @@ class _PostsPageState extends State<PostsPage> {
 
   Future<void> getPosts() async {
     List<Post> _postList=[];
+    // get old posts from DB
     var db=DatabaseServices.instance;
     if (widget.discussion!=null) {
       //print('widget.discussion not null');
@@ -35,8 +36,10 @@ class _PostsPageState extends State<PostsPage> {
       setState(() {
         postList=_postList;
       });
+
+      // get new posts from http
       var study = HttpServices();
-      var html = await study.getHtml(widget.discussion!.link);
+      var html = await study.httpGetHtml(widget.discussion!.link);
       if (html!=null) {
         _postList=study.getPosts(html, widget.discussion!.id!);
         await db.updateDB(newData: _postList, whereId: 'discussionId', id: widget.discussion!.id!);
@@ -97,7 +100,7 @@ class _PostsPageState extends State<PostsPage> {
   Widget build(BuildContext context) {
     print('postspage');
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Color(0xFFE8E8E8), //Colors.grey[200],
       appBar: AppBar(
         backgroundColor: Color(0xFFCF118C),
         title: RichText(

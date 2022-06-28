@@ -40,7 +40,7 @@ class _AssignsPageState extends State<AssignsPage> {
       if (emptyGradeLinks.isNotEmpty) {
         var study=HttpServices();
         for (var e in emptyGradeLinks) {
-          var html = await study.getHtml(e['link'].toString());
+          var html = await study.httpGetHtml(e['link'].toString());
           if (html!=null) {
             var grade=study.getGrade(html);
             if (grade != '') {
@@ -113,7 +113,7 @@ class _AssignsPageState extends State<AssignsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Color(0xFFE8E8E8), //Colors.grey[200],
       appBar: AppBar(
         backgroundColor: Color(0xFFCF118C),
         title: Text('Βαθμολογία'),

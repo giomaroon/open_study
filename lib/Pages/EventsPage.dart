@@ -43,7 +43,7 @@ class _EventsPageState extends State<EventsPage> {
         loading=false;
       });
     } else { // connect to get new events
-      var html= await study.getHtml('https://study.eap.gr/my/');
+      var html= await study.httpGetHtml('https://study.eap.gr/my/');
       if (html!=null) { //connected
           _eventList=study.getEvents(html, activeUserId);
           await db.updateDB(newData: _eventList, whereId: 'userId', id: activeUserId);
@@ -75,7 +75,7 @@ class _EventsPageState extends State<EventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Color(0xFFE8E8E8), //Colors.grey[200],
       appBar: AppBar(
         backgroundColor: Color(0xFFCF118C),
         title: Text('Επικείμενα Γεγονότα'),
@@ -183,7 +183,7 @@ class _EventsPageState extends State<EventsPage> {
                                     textAlign: TextAlign.left,
                                     ),
                                   onPressed: () async {
-                                    if (!await launch(e.webex)) {
+                                    if (!await launchUrl(Uri.parse(e.webex))) {
                                       throw 'could not launch ${e.webex}';
                                     }
                                   },

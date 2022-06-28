@@ -33,7 +33,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
         discussionList=_discussionList;
       });
       var study = HttpServices();
-      var html = await study.getHtml(widget.forum!.link);
+      var html = await study.httpGetHtml(widget.forum!.link);
       if (html!=null) {
         _discussionList=study.getDiscussions(html, widget.forum!.id!);
         await db.updateDB(newData: _discussionList, whereId: 'forumId', id: widget.forum!.id!);
@@ -75,7 +75,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Color(0xFFE8E8E8), //Colors.grey[200],
       appBar: AppBar(
         backgroundColor: Color(0xFFCF118C),
         title: RichText(

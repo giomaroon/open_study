@@ -9,13 +9,90 @@ import 'HttpServices.dart';
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     switch (task) {
+      case 'messages':
+        print('background: messages 4');
+        HttpOverrides.global = new MyHttpOverrides();
+        print('111');
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        print('22');
+        var activeUserId=prefs.getInt('userId')?? 0;
+        print('activeUserId: $activeUserId');
+        print('a');
+        if (activeUserId==0) { print('b'); break; }
+
+        var study = HttpServices();
+        var html = await study.httpGetHtml('https://study.eap.gr/my/');
+        print('c');
+
+        if (html!=null
+            && html.getElementsByClassName('count-container').isNotEmpty
+            && html.getElementsByClassName('count-container')[0].text!='0') {
+
+          try {
+            var sesskey=html.getElementsByClassName('usermenu')[0].getElementsByTagName('li')[9]
+                .children[0].attributes['href']!.split('?')[1];
+            var userStudyId=html.getElementsByClassName('usermenu')[0].getElementsByTagName('li')[3]
+                .children[0].attributes['href']!.split('=')[1];
+            print(sesskey+' - '+userStudyId);
+
+            var jsonMessagesPreview = await study.httpGetJsonMessagesPreview(
+              sesskey: sesskey,
+              userStudyId: userStudyId);
+
+            if (jsonMessagesPreview.isNotEmpty) {
+              print('json not empty');
+              var notifId=200;
+              for (var e in jsonMessagesPreview['data']['contacts']) {
+              //for (var e in mm) {
+                if (e['isread']==false) {
+                  print('isread=false');
+                  print(e);
+                  print(e['userid']);
+                  print('type is: ${e['userid'].runtimeType}');
+                  var db = await DatabaseServices.instance.database;
+                  var contactListDB = await db.query('Contact',
+                      columns: ['id'],
+                      where: 'link=? AND userId=?',
+                      whereArgs: [e['userid'],activeUserId]);
+                  var contactId;
+                  if (contactListDB.isNotEmpty) {
+                    print('contact is already in DB');
+                    contactId=contactListDB[0]['id'];
+                  } else {
+                    print('new contact, insert DB');
+                    contactId= await db.insert('Contact',
+                      {'link': e['userid'],
+                       'name': e['fullname'],
+                       'lastMessage': e['lastmessage'],
+                       'chatUpdateTime': '',
+                       'position':0,
+                       'userId': activeUserId});
+                  }
+                  print('contact Id: $contactId');
+                  await notificationServices.showNotification(
+                      id: notifId,
+                      title: e['fullname'],
+                      body: e['lastmessage'],
+                      payload: '$sesskey-$userStudyId-${e['userid']}-$contactId /MessengerPage/ChatPage'
+                  );
+                  print('$sesskey-$userStudyId-${e['userid']}-$contactId /MessengerPage/ChatPage');
+                  ++notifId;
+                }
+              }
+            }
+          } catch (err, st) {
+            print('err'); print(err);
+            print('stack'); print(st);
+          }
+        }
+        break;
       case 'event':
         HttpOverrides.global = new MyHttpOverrides();
         SharedPreferences prefs = await SharedPreferences.getInstance();
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
         var study = HttpServices();
-        var html = await study.getHtml('https://study.eap.gr/my/');
+        var html = await study.httpGetHtml('https://study.eap.gr/my/');
         if (html!=null) {
           var eventList = study.getEvents(html, activeUserId);
           var db = DatabaseServices.instance;
@@ -35,7 +112,7 @@ void callbackDispatcher() {
                     now.isAfter(eventDateTime.subtract(Duration(days: 2)))) {
                   var notifId=now.millisecond+1;
                   await notificationServices.showNotificationScheduled(
-                      id: notifId+200,
+                      id: notifId+300,
                       title: event.dateTime,
                       body: event.title,
                       dateTime: eventDateTime,
@@ -58,7 +135,7 @@ void callbackDispatcher() {
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
         var study = HttpServices();
-        var html = await study.getHtml('https://study.eap.gr/my/');
+        var html = await study.httpGetHtml('https://study.eap.gr/my/');
         if (html!=null) {
           var courseList = study.getCourses(html, activeUserId);
           //print('courses');
@@ -72,7 +149,7 @@ void callbackDispatcher() {
             as List<Course>;
             int notifId=0;
             for (var course in courseList) {
-              html=await study.getHtml(course.link);
+              html=await study.httpGetHtml(course.link);
               if (html!=null) {
                 var forumList = study.getForums(html,course.id!);
                 //print('forums');
@@ -82,7 +159,7 @@ void callbackDispatcher() {
                 for (var forum in forumList) {
                   if (forum.unread=='- new') {
                     //print('unread - new');
-                    html = await study.getHtml(forum.link);
+                    html = await study.httpGetHtml(forum.link);
                     if (html!=null) {
                       var discussionList = study.getDiscussions(html, forum.id!);
                       //print('discussion');
@@ -98,7 +175,7 @@ void callbackDispatcher() {
                         //print('c');
                         if (discussion.repliesUnread!=0) {
                           //print('d');
-                          html = await study.getHtml(discussion.link);
+                          html = await study.httpGetHtml(discussion.link);
                           if (html!=null) {
                             var postList = study.getPosts(html, discussion.id!);
                             //print('post');
@@ -136,7 +213,7 @@ void callbackDispatcher() {
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
         var study = HttpServices();
-        var html = await study.getHtml('https://study.eap.gr/my/');
+        var html = await study.httpGetHtml('https://study.eap.gr/my/');
         if (html!=null) {
           var courseList = study.getCourses(html, activeUserId);
           if (courseList.isNotEmpty) {
@@ -150,7 +227,7 @@ void callbackDispatcher() {
                 id: activeUserId) as List<Course>;
             int notifId = 100;
             for (var course in courseList) {
-              html = await study.getHtml(course.link);
+              html = await study.httpGetHtml(course.link);
               if (html != null) {
                 var emptyGradeAssignList = study.getAssigns(html, course.id!);
                 var existedAssigns=await db.getObjectsById(object: Assign, id: course.id);
@@ -167,7 +244,7 @@ void callbackDispatcher() {
                     ? emptyGradeLinksRows.map((c) => Assign.fromMap(c)).toList()
                     : [];
                 for (var e in emptyGradeAssignList) {
-                  var html = await study.getHtml(e.link);
+                  var html = await study.httpGetHtml(e.link);
                   if (html != null) {
                     var grade = study.getGrade(html);
                     if (grade != '') {
@@ -231,9 +308,7 @@ Future<void> activateEventNotifications(bool on, int userId) async {
 
 Future<void> activatePostNotifications({required int time}) async {
   await Workmanager().cancelByUniqueName('2');
-  //print('cancel post notif');
   if (time!=0) {
-    //print('post notif is on: '+time.toString());
     await Workmanager().registerPeriodicTask(
       '2',
       'post',
@@ -244,12 +319,25 @@ Future<void> activatePostNotifications({required int time}) async {
   }
 }
 
+Future<void> activateMessageNotifications({required int time}) async {
+  await Workmanager().cancelByUniqueName('4');
+  if (time!=0) {
+    await Workmanager().registerPeriodicTask(
+        '4',
+        'messages',
+        initialDelay: Duration(minutes: 15),
+        frequency: Duration(hours: time),
+        existingWorkPolicy: ExistingWorkPolicy.append
+    );
+  }
+}
+
 Future<void> activateGradeNotifications(bool on) async {
   if (on==true) {
     await Workmanager().registerPeriodicTask(
       '3',
       'grade',
-      initialDelay: Duration(minutes: 15),
+      initialDelay: Duration(minutes: 20),
       frequency: Duration(hours: 12),
       existingWorkPolicy: ExistingWorkPolicy.append
     );

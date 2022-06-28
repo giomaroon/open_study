@@ -37,7 +37,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
 
     } else  {
       print('widget.html is null');
-      var html = await study.getHtml('https://study.eap.gr/my/');
+      var html = await study.httpGetHtml('https://study.eap.gr/my/');
       if (html != null) {
         _courseList = study.getCourses(html, activeUserId);
       } else {
@@ -71,7 +71,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Color(0xFFE8E8E8), //Colors.grey[200],
         appBar: AppBar(
           backgroundColor: Color(0xFFCF118C),
           title: Text('Μαθήματα'),

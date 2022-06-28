@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:gio_app/Pages/ChatPage.dart';
 import 'package:gio_app/Pages/EventsPage.dart';
 import 'package:gio_app/Pages/AssignsPage.dart';
+import 'package:gio_app/Pages/MessengerPage.dart';
 import 'package:gio_app/Pages/PostsPage.dart';
 import 'package:gio_app/Services/NotificationServices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,7 +14,7 @@ import 'Services/BackgroundServices.dart';
 
 
 var activeUserId;
-var initialRoute;
+var initialRoute='/';
 var payload;
 
 NotificationServices notificationServices = NotificationServices();
@@ -20,6 +22,7 @@ NotificationServices notificationServices = NotificationServices();
 void main() async {
   // needed if you intend to initialize notifications in the `main` function
   WidgetsFlutterBinding.ensureInitialized();
+
 
   Workmanager().initialize(
       callbackDispatcher,
@@ -31,7 +34,7 @@ void main() async {
   // .....Get active user id.........
   var prefs = await SharedPreferences.getInstance();
   activeUserId = prefs.getInt('userId') ?? 0;
-  //print(activeUserId);
+  print('main: $activeUserId');
 
   //...initialize notification plugin....
   await notificationServices.initializeNotifications();
@@ -40,14 +43,22 @@ void main() async {
 
   payload = await notificationServices.getLaunchAppPayload();
 
+
   if (activeUserId==0) {
     initialRoute='LoginPage';
   } else if (payload==null) {
+    print('main: payload is null');
     initialRoute='/';
   } else if (payload.split(' ').length==2){
     initialRoute = payload.split(' ')[1];
+    await prefs.setString('payload', payload?? 'no payload');
+    await prefs.setString('initialRoute', initialRoute);
 
   }
+
+
+
+
 
   runApp(MyApp());
 }
@@ -65,6 +76,8 @@ class MyApp extends StatelessWidget {
           '/EventsPage': (_) => EventsPage(),
           '/PostsPage': (_) => PostsPage(payloadDiscussionId: payload.split(' ')[0]),
           '/AssignsPage': (_) => AssignsPage(payloadCourseId: payload.split(' ')[0]),
+          '/MessengerPage': (_) => MessengerPage(),
+          '/MessengerPage/ChatPage': (_) => ChatPage(payload: payload.split(' ')[0]),
         }
     );
   }
@@ -81,12 +94,5 @@ class MyHttpOverrides extends HttpOverrides{
   }
 }
 
-// class MyHttpOverrides extends HttpOverrides{
-//   @override
-//   HttpClient createHttpClient(SecurityContext? context){
-//     return super.createHttpClient(context)
-//       ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
-//   }
-// }
 
 

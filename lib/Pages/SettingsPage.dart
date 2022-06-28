@@ -22,22 +22,18 @@ class _SettingsPageState extends State<SettingsPage> {
   bool eventNotif=false;
   bool gradeNotif=false;
   int postNotifTime=0;
+  int messageNotifTime=0;
   User? user;
   var db=DatabaseServices.instance;
-  //Map<int,int> timeToValue={0: 0, 4: 1, 8: 2, 12: 3, 24: 4};
   Map<int,int> timeToValue={0: 0, 1: 1, 2: 2, 3: 3, 4:4, 8: 5, 12: 6, 24: 7};
-  //Map<int,int> valueToTime={0: 0, 4: 1, 8: 2, 12: 3 ,24: 4};
   Map<int,int> valueToTime={0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 8, 6: 12, 7: 24};
 
   Future<void> getUserSettings() async {
     user = await db.getUser(id: activeUserId);
-    eventNotif=user!.eventNotification==1
-        ? true
-        : false;
+    eventNotif=user!.eventNotification==1? true: false;
     postNotifTime=user!.postNotification;
-    gradeNotif=user!.gradeNotification==1
-        ? true
-        : false;
+    messageNotifTime=user!.messageNotification;
+    gradeNotif=user!.gradeNotification==1? true: false;
     setState(() { });
   }
 
@@ -51,7 +47,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Color(0xFFE8E8E8), //Colors.grey[200],
       appBar: AppBar(
         backgroundColor: Color(0xFFCF118C),
         title: Container(
@@ -86,6 +82,79 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: Text('Ειδοποιήσεις',
                           style: TextStyle(
                             fontSize: 20
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(
+                  color: Colors.grey[200],
+                  thickness: 1.5,
+                  indent: 20,
+                  endIndent: 20,
+                ),
+                Container(
+                  color: Colors.white,
+                  child: Column(
+                    children: [
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          SizedBox(width: 22),
+                          Text('Νέα μηνύματα ανά:  ',
+                            style: TextStyle(
+                                fontSize: 18
+                            ),
+                          ),
+                          Text(messageNotifTime==0
+                              ? '-'
+                              : messageNotifTime.toString(),
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          Text('  ώρες',
+                            style: TextStyle(
+                                fontSize: 18
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(14,4,14,0),
+                        child: SliderTheme(
+                          data: SliderThemeData(
+                            activeTrackColor: Color(0xFFCF118C),
+                            inactiveTrackColor: Colors.grey[400],
+                            thumbColor: messageNotifTime==0
+                                ? Colors.white
+                                : Color(0xFFCF118C),
+                            trackHeight: 10,
+                            activeTickMarkColor: Color(0xFFCF118C),
+                            inactiveTickMarkColor: Colors.grey[400],
+                          ),
+                          child: Slider(
+                            min: 0,
+                            max: 7,
+                            divisions: 7,
+                            value: timeToValue[messageNotifTime]!.toDouble(),
+                            onChanged: (a) {
+                              setState(() {
+                                messageNotifTime = valueToTime[a]!;
+                                //postNotifTime=(4*a+a*(a-1)*(a-2)*(a-3)/3).toInt();
+                              });
+                            },
+                            onChangeEnd: (a) async {
+                              print(messageNotifTime);
+                              await activateMessageNotifications(time: messageNotifTime);
+                              var dbase= await db.database;
+                              await dbase.update('User',
+                                  {'messageNotification': messageNotifTime,},
+                                  where: 'id=?',
+                                  whereArgs: [user!.id!]);
+                            },
                           ),
                         ),
                       ),
@@ -151,7 +220,6 @@ class _SettingsPageState extends State<SettingsPage> {
                               });
                             },
                             onChangeEnd: (a) async {
-                              print('postnotiftime');
                               print(postNotifTime);
                               await activatePostNotifications(time: postNotifTime);
                               var dbase= await db.database;
@@ -279,12 +347,14 @@ class _SettingsPageState extends State<SettingsPage> {
                                               onPressed: () async {
                                                 Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder:
                                                     (context) => LoginPage()), (route) => false);
-                                                await activateEventNotifications(false, user!.id!);
-                                                await activatePostNotifications(time: 0);
-                                                await activateGradeNotifications(false);
-                                                await db.removeAllById('User', column: 'id', id: activeUserId);
                                                 SharedPreferences prefs = await SharedPreferences.getInstance();
                                                 await prefs.setInt('userId', 0);
+                                                await activateEventNotifications(false, user!.id!);
+                                                await activatePostNotifications(time: 0);
+                                                await activateMessageNotifications(time: 0);
+                                                await activateGradeNotifications(false);
+                                                await db.removeAllById('User', column: 'id', id: activeUserId);
+
                                               },
                                             ),
                                             TextButton(
@@ -334,11 +404,13 @@ class _SettingsPageState extends State<SettingsPage> {
                           onPressed: () async {
                             Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder:
                                 (context) => LoginPage()), (route) => false);
-                            await activateEventNotifications(false, user!.id!);
-                            await activatePostNotifications(time: 0);
-                            await activateGradeNotifications(false);
                             SharedPreferences prefs = await SharedPreferences.getInstance();
                             await prefs.setInt('userId', 0);
+                            await activateEventNotifications(false, user!.id!);
+                            await activatePostNotifications(time: 0);
+                            await activateMessageNotifications(time: 0);
+                            await activateGradeNotifications(false);
+
                           },
                         ),
                       ],

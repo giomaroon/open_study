@@ -7,8 +7,10 @@ class User {
   final String studentName;
   final int eventNotification;
   final int postNotification;
+  final int messageNotification;
   final int gradeNotification;
   final String eventsUpdateTime;
+  final String? messengerUpdateTime;
 
   User({
     this.id,
@@ -17,8 +19,10 @@ class User {
     required this.studentName,
     required this.eventNotification,
     required this.postNotification,
+    required this.messageNotification,
     required this.gradeNotification,
-    required this.eventsUpdateTime
+    required this.eventsUpdateTime,
+    required this.messengerUpdateTime
   });
 
   Map<String, dynamic> toMap() {
@@ -29,8 +33,10 @@ class User {
       'studentName': studentName,
       'eventNotification': eventNotification,
       'postNotification': postNotification,
+      'messageNotification': messageNotification,
       'gradeNotification': gradeNotification,
-      'eventsUpdateTime': eventsUpdateTime
+      'eventsUpdateTime': eventsUpdateTime,
+      'messengerUpdateTime': messengerUpdateTime
     };
   }
   factory User.fromMap(Map<String, dynamic> map) => new User(
@@ -40,11 +46,12 @@ class User {
       studentName: map['studentName'],
       eventNotification: map['eventNotification'],
       postNotification: map['postNotification'],
+      messageNotification: map['messageNotification'],
       gradeNotification: map['gradeNotification'],
-      eventsUpdateTime: map['eventsUpdateTime']
+      eventsUpdateTime: map['eventsUpdateTime'],
+      messengerUpdateTime: map['messengerUpdateTime']
   );
 }
-
 
 class Course {
   final int? id;
@@ -288,5 +295,93 @@ class Assign {
     grade: map['grade'],
     link: map['link'],
     courseId: map['courseId']
+  );
+}
+
+class Contact {
+  final int? id;
+  final int link; // link=contactStudyId
+  final String name;
+  final String lastMessage;
+  final String chatUpdateTime;
+  final int position;
+  final int? userId;
+
+
+  Contact({
+    this.id,
+    required this.link,
+    required this.name,
+    required this.lastMessage,
+    required this.chatUpdateTime,
+    required this.position,
+    required this.userId,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'link': link,
+      'name': name,
+      'lastMessage': lastMessage,
+      'chatUpdateTime': chatUpdateTime,
+      'position': position,
+      'userId': userId,
+    };
+  }
+  factory Contact.fromMap(Map<String, dynamic> map) => new Contact(
+      id: map['id'],
+      link: map['link'],
+      name: map['name'],
+      lastMessage: map['lastMessage'],
+    chatUpdateTime: map['chatUpdateTime'],
+    position: map['position'],
+      userId: map['userId'],
+  );
+}
+
+class Message {
+  final int? id;
+  final int link; // link=message id
+  final String position;
+  final String text;
+  final String timesent;
+  final String blocktime;
+  final int? contactId;
+  //final int? userId;
+
+
+  Message({
+    this.id,
+    required this.link,
+    required this.position,
+    required this.text,
+    required this.timesent,
+    required this.blocktime,
+    required this.contactId,
+    //required this.userId,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'link': link,
+      'position': position,
+      'text': text,
+      'timesent': timesent,
+      'blocktime': blocktime,
+      'contactId': contactId,
+      //'userId': userId,
+    };
+  }
+  factory Message.fromMap(Map<String, dynamic> map) => new Message(
+    id: map['id'],
+    link: map['link'],
+    position: map['position'],
+    text: map['text'],
+    timesent: map['timesent'],
+    blocktime: map['blocktime'],
+    contactId: map['contactId'],
+    //userId: map['userId'],
   );
 }
