@@ -19,6 +19,7 @@ class DatabaseServices {
 
     var storage=FlutterSecureStorage();
     var dbpass=await storage.read(key: 'dbpass');
+    print('dbpass: $dbpass');
 
     var databasesPath = await getDatabasesPath();
     String path=join(databasesPath, 'studyAppDB.db');
@@ -288,7 +289,8 @@ class DatabaseServices {
         // check if user exists....
         if (userDB['username'] == user.username) {
           userExists=true;
-          // update password and username in case they have changed
+          print('user exists');
+          // update password and student rname in case they have changed
           await db.update('User',
               {'password': user.password,
                 'studentName': user.studentName},
@@ -300,11 +302,12 @@ class DatabaseServices {
           messageNotifTime=userDB['messageNotification'] as int;
           gradeNotifOn=userDB['gradeNotification']==1? true: false;
           userId = userDB['id'];
+          break;
         }
-        break;
       }
     }
     if (!userExists) {
+      print('inserting user to db');
       userId = await db.insert('User', user.toMap());
     }
     await activateEventNotifications(eventNotifOn, userId);
@@ -325,7 +328,7 @@ class DatabaseServices {
   Future<List<User>> getUsers() async {
     Database db = await instance.database;
     var rows = await db.query('User');
-    print(rows);
+    //print(rows);
     List<User> list = rows.isNotEmpty
         ? rows.map((c) => User.fromMap(c)).toList()
         : [];
@@ -495,81 +498,81 @@ class DatabaseServices {
     return await db.delete(table, where: '$column = ?', whereArgs: [id]);
   }
 
-  // Future<int> removeAll(String table) async {
-  //   Database db = await instance.database;
-  //   return await db.delete(table);
-  // }
+  Future<int> removeAll(String table) async {
+    Database db = await instance.database;
+    return await db.delete(table);
+  }
 
-  // Future<List<Course>> getCourses() async {
-  //   Database db = await instance.database;
-  //   var courses = await db.query('Course');
-  //   List<Course> coursesList = courses.isNotEmpty
-  //       ? courses.map((c) => Course.fromMap(c)).toList()
-  //       : [];
-  //   return coursesList;
-  // }
-  //
-  // Future<List<Forum>> getForums() async {
-  //   Database db = await instance.database;
-  //   var forums = await db.query('Forum');
-  //   List<Forum> forumsList = forums.isNotEmpty
-  //       ? forums.map((c) => Forum.fromMap(c)).toList()
-  //       : [];
-  //   return forumsList;
-  // }
-  //
-  // Future<List<Discussion>> getDiscuccions() async {
-  //   Database db = await instance.database;
-  //   var rows = await db.query('Discussion');
-  //   List<Discussion> list = rows.isNotEmpty
-  //       ? rows.map((c) => Discussion.fromMap(c)).toList()
-  //       : [];
-  //   return list;
-  // }
-  //
-  // Future<List<Post>> getPosts() async {
-  //   Database db = await instance.database;
-  //   var rows = await db.query('Post');
-  //   List<Post> list = rows.isNotEmpty
-  //       ? rows.map((c) => Post.fromMap(c)).toList()
-  //       : [];
-  //   return list;
-  // }
-  //
-  // Future<List<Event>> getEvents() async {
-  //   Database db = await instance.database;
-  //   var rows = await db.query('Event');
-  //   List<Event> list = rows.isNotEmpty
-  //       ? rows.map((c) => Event.fromMap(c)).toList()
-  //       : [];
-  //   return list;
-  // }
-  //
-  // Future<List<Assign>> getAssigns() async {
-  //   Database db = await instance.database;
-  //   var rows = await db.query('Assign');
-  //   List<Assign> list = rows.isNotEmpty
-  //       ? rows.map((c) => Assign.fromMap(c)).toList()
-  //       : [];
-  //   return list;
-  // }
-  //
-  // Future<List<Contact>> getContacts() async {
-  //   Database db = await instance.database;
-  //   var rows = await db.query('Contact');
-  //   List<Contact> list = rows.isNotEmpty
-  //       ? rows.map((c) => Contact.fromMap(c)).toList()
-  //       : [];
-  //   return list;
-  // }
-  //
-  // Future<List<Message>> getMessages() async {
-  //   Database db = await instance.database;
-  //   var rows = await db.query('Message');
-  //   List<Message> list = rows.isNotEmpty
-  //       ? rows.map((c) => Message.fromMap(c)).toList()
-  //       : [];
-  //   return list;
-  // }
+  Future<List<Course>> getCourses() async {
+    Database db = await instance.database;
+    var courses = await db.query('Course');
+    List<Course> coursesList = courses.isNotEmpty
+        ? courses.map((c) => Course.fromMap(c)).toList()
+        : [];
+    return coursesList;
+  }
+
+  Future<List<Forum>> getForums() async {
+    Database db = await instance.database;
+    var forums = await db.query('Forum');
+    List<Forum> forumsList = forums.isNotEmpty
+        ? forums.map((c) => Forum.fromMap(c)).toList()
+        : [];
+    return forumsList;
+  }
+
+  Future<List<Discussion>> getDiscuccions() async {
+    Database db = await instance.database;
+    var rows = await db.query('Discussion');
+    List<Discussion> list = rows.isNotEmpty
+        ? rows.map((c) => Discussion.fromMap(c)).toList()
+        : [];
+    return list;
+  }
+
+  Future<List<Post>> getPosts() async {
+    Database db = await instance.database;
+    var rows = await db.query('Post');
+    List<Post> list = rows.isNotEmpty
+        ? rows.map((c) => Post.fromMap(c)).toList()
+        : [];
+    return list;
+  }
+
+  Future<List<Event>> getEvents() async {
+    Database db = await instance.database;
+    var rows = await db.query('Event');
+    List<Event> list = rows.isNotEmpty
+        ? rows.map((c) => Event.fromMap(c)).toList()
+        : [];
+    return list;
+  }
+
+  Future<List<Assign>> getAssigns() async {
+    Database db = await instance.database;
+    var rows = await db.query('Assign');
+    List<Assign> list = rows.isNotEmpty
+        ? rows.map((c) => Assign.fromMap(c)).toList()
+        : [];
+    return list;
+  }
+
+  Future<List<Contact>> getContacts() async {
+    Database db = await instance.database;
+    var rows = await db.query('Contact');
+    List<Contact> list = rows.isNotEmpty
+        ? rows.map((c) => Contact.fromMap(c)).toList()
+        : [];
+    return list;
+  }
+
+  Future<List<Message>> getMessages() async {
+    Database db = await instance.database;
+    var rows = await db.query('Message');
+    List<Message> list = rows.isNotEmpty
+        ? rows.map((c) => Message.fromMap(c)).toList()
+        : [];
+    return list;
+  }
 
 }

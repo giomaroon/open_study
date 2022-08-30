@@ -12,7 +12,7 @@ import 'DatabaseServices.dart';
 
 class HttpServices {
 
-  final String loginLink = 'https://study.eap.gr/login/index.php';
+  final String loginLink = 'https://$server/login/index.php';
   final String noConnection='no connection';
 
   //....  http methods
@@ -44,7 +44,7 @@ class HttpServices {
       print('login... post: '+url.toString());
       var request = Request('POST', url)
         ..headers.addAll(cookie)
-        ..headers.addAll({'origin': 'https://study.eap.gr', 'referer': loginLink})
+        ..headers.addAll({'origin': 'https://$server', 'referer': loginLink})
         ..bodyFields = {'username': username, 'password' : password,
           'anchor' : '', 'logintoken' : logintoken??''}
         ..followRedirects = false;
@@ -331,11 +331,11 @@ class HttpServices {
     return postList;
   }
 
-  Future<Map> httpGetJsonMessagesPreview({String? sesskey, String? userStudyId}) async {
+  Future<Map> httpGetJsonMessagesPreview({String? sesskey, String? userStudyId, String? server}) async {
     Map jsonMessages={};
 
     // .... POST MESSAGE REQUEST ..........
-    String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_data_for_messagearea_conversations';
+    String link='https://$server/lib/ajax/service.php?$sesskey&info=core_message_data_for_messagearea_conversations';
     var url=Uri.parse(link);
 
     var payload=[{"index":0,"methodname":"core_message_data_for_messagearea_conversations",
@@ -347,8 +347,8 @@ class HttpServices {
     Map<String,String> headers = {
       'Content-type' : 'application/json',
       'Cookie' : ' $moodleSession; ',
-      'origin': 'https://study.eap.gr',
-      'referer': 'https://study.eap.gr/message/index.php',
+      'origin': 'https://$server',
+      'referer': 'https://$server/message/index.php',
       'X-Requested-With': 'XMLHttpRequest'
     };
 
@@ -369,7 +369,7 @@ class HttpServices {
   }
 
   Future<void> httpSetMessagesRead ({String? sesskey, int? userStudyId, int? contactStudyId}) async {
-    String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_mark_all_messages_as_read';
+    String link='https://$server/lib/ajax/service.php?$sesskey&info=core_message_mark_all_messages_as_read';
     var url=Uri.parse(link);
 
     var payload=[{"index":0,"methodname":"core_message_mark_all_messages_as_read",
@@ -381,8 +381,8 @@ class HttpServices {
     Map<String,String> headers = {
       'Content-type' : 'application/json',
       'Cookie' : ' $moodleSession; ',
-      'origin': 'https://study.eap.gr',
-      'referer': 'https://study.eap.gr/message/index.php',
+      'origin': 'https://$server',
+      'referer': 'https://$server/message/index.php',
       'X-Requested-With': 'XMLHttpRequest'
     };
 
@@ -398,7 +398,7 @@ class HttpServices {
     Map jsonMessages={};
 
     // .... POST MESSAGE REQUEST ..........
-    String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_data_for_messagearea_messages';
+    String link='https://$server/lib/ajax/service.php?$sesskey&info=core_message_data_for_messagearea_messages';
     var url=Uri.parse(link);
 
     var payload=[{"index":0,"methodname":"core_message_data_for_messagearea_messages",
@@ -410,8 +410,8 @@ class HttpServices {
     Map<String,String> headers = {
       'Content-type' : 'application/json',
       'Cookie' : ' $moodleSession; ',
-      'origin': 'https://study.eap.gr',
-      'referer': 'https://study.eap.gr/message/index.php',
+      'origin': 'https://$server',
+      'referer': 'https://$server/message/index.php',
       'X-Requested-With': 'XMLHttpRequest'
     };
 
@@ -434,7 +434,7 @@ class HttpServices {
   Future<bool> httpSendMessage({String? text, String? sesskey, int? contactId}) async {
 
     // .... POST MESSAGE REQUEST ..........
-    String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_send_instant_messages';
+    String link='https://$server/lib/ajax/service.php?$sesskey&info=core_message_send_instant_messages';
     var url=Uri.parse(link);
 
     // var payload=[{"index":0,"methodname":"core_message_data_for_messagearea_messages",
@@ -449,8 +449,8 @@ class HttpServices {
     Map<String,String> headers = {
       'Content-type' : 'application/json',
       'Cookie' : ' $moodleSession; ',
-      'origin': 'https://study.eap.gr',
-      'referer': 'https://study.eap.gr/message/index.php',
+      'origin': 'https://$server',
+      'referer': 'https://$server/message/index.php',
       'X-Requested-With': 'XMLHttpRequest'
     };
 
@@ -489,28 +489,6 @@ class HttpServices {
     return contactsList;
   }
 
-  // List<Contact> getContacts(Document html, int activeUserid) {
-  //   List<Contact> contactsList=[];
-  //   var htmlMessenger=html.getElementsByClassName('contact');
-  //
-  //   try {
-  //     var num=0;
-  //     for (var el in htmlMessenger) {
-  //       contactsList.add(Contact(
-  //         //link = contactStudyId
-  //         link: int.tryParse(el.attributes['data-userid'].toString())!,
-  //         name: el.getElementsByClassName('name')[0].text.trim(),
-  //         lastMessage: el.getElementsByClassName('lastmessage')[0].children[1].text.trim(),
-  //         chatUpdateTime: '',
-  //         position: num++,
-  //         userId: activeUserid
-  //       ));
-  //     }
-  //   } catch(err) {
-  //     print(err);
-  //   }
-  //   return contactsList;
-  // }
 
   Future<List<Message>> getMessagesFromJson({required Map jsonMessages, int? contactId}) async {
 
@@ -540,43 +518,6 @@ class HttpServices {
       return messageList;
     }
   }
-
-  // Future<bool> httpSendMessageDemo({String? text, String? sesskey, int? contactId}) async {
-  //
-  //   // .... POST MESSAGE REQUEST ..........
-  //   String link='https://study.eap.gr/lib/ajax/service.php?$sesskey&info=core_message_send_instant_messages';
-  //   var url=Uri.parse(link);
-  //
-  //   // var payload=[{"index":0,"methodname":"core_message_data_for_messagearea_messages",
-  //   //   "args":{"currentuserid":studyUserId,"otheruserid":contactId,"limitfrom":0,"limitnum":20,"newest":true}}];
-  //
-  //   var payload=[{"index":0,"methodname":"core_message_send_instant_messages",
-  //     "args":{"messages":[{"touserid":contactId,"text":text}]}}];
-  //   var body = json.encode(payload);
-  //
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   var moodleSession = prefs.getString('moodleSession') ?? '';
-  //   Map<String,String> headers = {
-  //     'Content-type' : 'application/json',
-  //     'Cookie' : ' $moodleSession; ',
-  //     'origin': 'https://study.eap.gr',
-  //     'referer': 'https://study.eap.gr/message/index.php',
-  //     'X-Requested-With': 'XMLHttpRequest'
-  //   };
-  //
-  //   //var jsonList=[];
-  //   try {
-  //     var response = await post(url, headers: headers, body: body); //, encoding: Encoding.getByName("utf-8"));
-  //     //jsonList=json.decode(response.body);
-  //     //print(vvv[0]['data']['messages'][0]);
-  //     return true;
-  //   } catch(err) {
-  //     print(err);
-  //     return false;
-  //   }
-  // }
-
-  // ... methods for parsing datetime string and return DateTime
 
   DateTime? getEventDateTime(String datetime) {
     DateTime? dt;

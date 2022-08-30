@@ -28,16 +28,18 @@ class _LoginPageState extends State<LoginPage> {
   bool passwordObscure=true;
   bool userExists=false;
 
-  final _formKey=GlobalKey<FormState>();
+  var serverList=['courses.eap.gr', 'study.eap.gr'];
+  bool showSelectServerMessage=false;
 
+  final _formKey=GlobalKey<FormState>();
 
   Future<void> chekcIfUserExists() async {
     var storage=FlutterSecureStorage();
     if (await storage.read(key: 'dbpassGenerated') != 'yes') {
+      print('dbpass not generated');
       await storage.write(key: 'dbpass', value: username+password);
       await storage.write(key: 'dbpassGenerated', value: 'yes');
     }
-    await storage.write(key: 'dbpass', value: username+password);
     var db = await DatabaseServices.instance.database;
     var userExistsDB = await db.query('User', columns: ['id'],
         where: 'username=? AND password=?',
@@ -83,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     } else {
-      html = await study.httpGetHtml('https://study.eap.gr/my/', moodleSession: loginResult);
+      html = await study.httpGetHtml('https://$server/my/', moodleSession: loginResult);
 
       if (html!=null) {
         //...... get student name, messages counter, create User, update DB, store activeUserId and push HomePage(html)
@@ -132,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                 'δυνατότητα να διατηρεί στη συσκευή τα δεδομένα του χρήστη '
                 'συμπεριλαμβανομένων των στοιχείων μητρώου: όνομα χρήστη και '
                 'κωδικός πρόσβασης, που απαιτούνται για τη '
-                'σύνδεση στις υπηρεσίες της ιστοσελίδας www.study.gr. Τα δεδομένα '
+                'σύνδεση στους ψηφιακούς χώρους εκπαίδευσης του ΕΑΠ. Τα δεδομένα '
                 'αυτά παραμένουν μόνο στη συσκευή και σε αποκρυπτογραφημένη μορφή '
                 'έτσι, ώστε να είναι ασφαλής η χρήση τους. '
                 'Στις ρυθμίσεις της εφαρμογής δίνεται η δυνατότητα '
@@ -224,6 +226,9 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
+              SizedBox(
+                height: 40,
+              ),
               IconButton(
                   onPressed: () {aboutApp(context);},
                   icon: Icon(Icons.info_outline_rounded,
@@ -318,9 +323,65 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               Container(
+                margin: EdgeInsets.fromLTRB(4, 14, 4, 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: ExpansionTile(
+                  key: ValueKey(server),
+                  textColor: Colors.grey[700],
+                  initiallyExpanded: false,
+                  iconColor: Colors.grey[700],
+                  title: Text(
+                    showSelectServerMessage
+                    ? 'Πρέπει να επιλέξετε ψηφιακό χώρο εκπαίδευσης'
+                    : server==''
+                      ? 'Επιλέξτε ψηφιακό χώρο εκπαίδευσης'
+                      : server,
+                    style: TextStyle(
+                      color:  showSelectServerMessage
+                          ? Colors.red
+                          : Colors.grey[700],
+                    ),
+                  ),
+                  children: [
+                    ListTile(
+                      title: Text(
+                          'Με εξαμηνιαία διάρθρωση'
+                      ),
+                      subtitle: Text(
+                        'courses.eap.gr'
+                      ),
+                      onTap: () {
+                        setState(() {
+                          server=serverList[0];
+                          showSelectServerMessage=false;
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: Text(
+                          'Με ετήσια διάρθρωση'
+                      ),
+                      subtitle: Text(
+                          'study.eap.gr'
+                      ),
+                      onTap: () {
+                        setState(() {
+                          server=serverList[1];
+                          showSelectServerMessage=false;
+                        });
+                      },
+                    )
+                  ],
+                ),
+              ),
+              Container(
                 height: 40,
                 child: Center(
-                  child: Text(authResultMessage,
+                  child: Text(
+                      authResultMessage,
                       style: TextStyle(fontSize: 18, color: Colors.red)),
                 ),
               ),
@@ -333,14 +394,25 @@ class _LoginPageState extends State<LoginPage> {
                     MaterialStateProperty.resolveWith((states) => Color(0xFFCF118C))
                 ),
                 onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    await chekcIfUserExists();
-                    if (userExists) {
-                      await loginProcedure(context);
-                    } else {
-                      await serviceTerms(context);
+                  if (server!='') {
+                    showSelectServerMessage=false;
+                    if (_formKey.currentState!.validate()) {
+                      var prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('server', server);
+                      await chekcIfUserExists();
+                      if (userExists) {
+                        print('user exists: $userId');
+                        await loginProcedure(context);
+                      } else {
+                        await serviceTerms(context);
+                      }
                     }
+                  } else {
+                    setState(() {
+                      showSelectServerMessage=true;
+                    });
                   }
+
                 },
               ),
               SizedBox(height: 40,),
@@ -404,6 +476,14 @@ class _LoginPageState extends State<LoginPage> {
               //     print(contdb.map((e) => e.toMap()));
               //     print('messages: '+messdb.length.toString());
               //     print(messdb.map((e) => e.toMap()));
+              //   },
+              // ),
+              // TextButton(
+              //   child: Text('close DB'),
+              //   onPressed: () async {
+              //     var db = await DatabaseServices.instance.database;
+              //     await db.close();
+              //
               //   },
               // )
             ],

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gio_app/Services/HttpServices.dart';
 import '../Services/DatabaseServices.dart';
 import '../Models.dart';
-import '../main.dart' show activeUserId;
+import '../main.dart' show activeUserId, server;
 import 'package:html/dom.dart' show Document;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -43,7 +43,7 @@ class _EventsPageState extends State<EventsPage> {
         loading=false;
       });
     } else { // connect to get new events
-      var html= await study.httpGetHtml('https://study.eap.gr/my/');
+      var html= await study.httpGetHtml('https://$server/my/');
       if (html!=null) { //connected
           _eventList=study.getEvents(html, activeUserId);
           await db.updateDB(newData: _eventList, whereId: 'userId', id: activeUserId);

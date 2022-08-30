@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gio_app/Pages/ChatPage.dart';
 import 'package:gio_app/Services/DatabaseServices.dart';
 import 'package:gio_app/Services/HttpServices.dart';
-import '../main.dart' show activeUserId;
+import '../main.dart' show activeUserId, server;
 import '../Models.dart';
 
 class MessengerPage extends StatefulWidget {
@@ -52,7 +52,7 @@ class _MessengerPageState extends State<MessengerPage> {
       userStudyId=widget.userStudyId!;
       isConnected=true;
     } else {
-      var html = await study.httpGetHtml('https://study.eap.gr/my/');
+      var html = await study.httpGetHtml('https://$server/my/');
       if (html!=null) {
         try {
           sesskey =html.getElementsByClassName('usermenu')[0].getElementsByTagName(
@@ -70,7 +70,9 @@ class _MessengerPageState extends State<MessengerPage> {
     if (isConnected==true) {
       var jsonMessagesPreview = await study.httpGetJsonMessagesPreview(
           sesskey: widget.sesskey,
-          userStudyId: widget.userStudyId.toString());
+          userStudyId: widget.userStudyId.toString(),
+          server: server
+      );
       //debugPrint(jsonMessagesPreview.toString());
       if (jsonMessagesPreview.isNotEmpty &&
           jsonMessagesPreview['error'] == false) {

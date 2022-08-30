@@ -14,6 +14,7 @@ import 'Services/BackgroundServices.dart';
 
 
 var activeUserId;
+var server='';
 var initialRoute='/';
 var payload;
 
@@ -34,31 +35,28 @@ void main() async {
   // .....Get active user id.........
   var prefs = await SharedPreferences.getInstance();
   activeUserId = prefs.getInt('userId') ?? 0;
-  print('main: $activeUserId');
+  print('main userid: $activeUserId');
 
   //...initialize notification plugin....
   await notificationServices.initializeNotifications();
 
   //..... check if app is launched by notification and set initialRoute.......
-
+  //TODO check if didNotificationLaunchApp==true and not if payload is null???
   payload = await notificationServices.getLaunchAppPayload();
-
 
   if (activeUserId==0) {
     initialRoute='LoginPage';
-  } else if (payload==null) {
-    print('main: payload is null');
-    initialRoute='/';
-  } else if (payload.split(' ').length==2){
-    initialRoute = payload.split(' ')[1];
-    await prefs.setString('payload', payload?? 'no payload');
-    await prefs.setString('initialRoute', initialRoute);
-
+  } else {
+    server=prefs.getString('server')??'study.eap.gr';
+    if (payload==null) {
+      print('main: payload is null');
+      initialRoute='/';
+    } else if (payload.split(' ').length==2){
+      initialRoute = payload.split(' ')[1];
+      // await prefs.setString('payload', payload?? 'no payload');
+      // await prefs.setString('initialRoute', initialRoute);
+    }
   }
-
-
-
-
 
   runApp(MyApp());
 }
@@ -87,10 +85,7 @@ class MyHttpOverrides extends HttpOverrides{
   @override
   HttpClient createHttpClient(SecurityContext? context){
     return super.createHttpClient(context)
-      ..badCertificateCallback = ((X509Certificate cert, String host, int port) {
-        final isValidHost=host=='study.eap.gr';
-        return isValidHost;
-      });
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
   }
 }
 

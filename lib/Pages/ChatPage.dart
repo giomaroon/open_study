@@ -289,7 +289,7 @@ class _ChatPageState extends State<ChatPage> {
                               child: Card(
                                 elevation: 2,
                                 color: messageList[i].position == 'left'
-                                    ? Colors.grey[400]
+                                    ? Color(0xFFD5D5D5)
                                     : Colors.white,
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),

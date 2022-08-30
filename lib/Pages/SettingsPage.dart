@@ -3,7 +3,7 @@ import 'package:gio_app/Services/BackgroundServices.dart';
 import 'package:gio_app/Services/DatabaseServices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Models.dart';
-import '../main.dart' show activeUserId;
+import '../main.dart' show activeUserId, server;
 import 'LoginPage.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -35,6 +35,37 @@ class _SettingsPageState extends State<SettingsPage> {
     messageNotifTime=user!.messageNotification;
     gradeNotif=user!.gradeNotification==1? true: false;
     setState(() { });
+  }
+
+  Future<dynamic> aboutNotifications(BuildContext loginPageContext) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) =>
+          AlertDialog(
+            content: Text('Η λειτουργία των ειδοποιήσεων πραγματοποιείται μέσω '
+                'background services. Προκειμένου να είναι αποτελεσματική, '
+                'πρέπει στη συσκευή να είναι απενεργοποιημένη η εξοικονόμηση μπαταρίας '
+                'για τη συγκεκριμένη εφαρμογή. '
+                'Η επιλογή αυτή βρίσκεται στις ρυθμίσεις της συσκευής για την εξοικονόμηση '
+                'ενέργειας (battery performance-optimization).' ,
+                style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 18
+                )
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK',
+                    style: TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 20
+                    )
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+    );
   }
 
 
@@ -70,6 +101,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(width: 10),
                       Icon(
@@ -84,6 +116,14 @@ class _SettingsPageState extends State<SettingsPage> {
                             fontSize: 20
                           ),
                         ),
+                      ),
+                      Spacer(),
+                      IconButton(
+                          onPressed: () {aboutNotifications(context);},
+                          icon: Icon(Icons.info_outline_rounded,
+                            size: 36,
+                            color: Color(0xFFA50D70),
+                          )
                       ),
                     ],
                   ),
@@ -345,6 +385,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                                   )
                                               ),
                                               onPressed: () async {
+                                                server='';
                                                 Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder:
                                                     (context) => LoginPage()), (route) => false);
                                                 SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -402,6 +443,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           icon: Icon(Icons.logout, size: 38),
                           color: Colors.grey[800],
                           onPressed: () async {
+                            server='';
                             Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder:
                                 (context) => LoginPage()), (route) => false);
                             SharedPreferences prefs = await SharedPreferences.getInstance();

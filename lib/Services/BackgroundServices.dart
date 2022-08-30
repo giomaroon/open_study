@@ -19,9 +19,9 @@ void callbackDispatcher() {
         print('activeUserId: $activeUserId');
         print('a');
         if (activeUserId==0) { print('b'); break; }
-
+        var server=prefs.getString('server')??'';
         var study = HttpServices();
-        var html = await study.httpGetHtml('https://study.eap.gr/my/');
+        var html = await study.httpGetHtml('https://$server/my/');
         print('c');
 
         if (html!=null
@@ -37,7 +37,9 @@ void callbackDispatcher() {
 
             var jsonMessagesPreview = await study.httpGetJsonMessagesPreview(
               sesskey: sesskey,
-              userStudyId: userStudyId);
+              userStudyId: userStudyId,
+              server: server
+            );
 
             if (jsonMessagesPreview.isNotEmpty) {
               print('json not empty');
@@ -91,8 +93,9 @@ void callbackDispatcher() {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
+        var server=prefs.getString('server')??'';
         var study = HttpServices();
-        var html = await study.httpGetHtml('https://study.eap.gr/my/');
+        var html = await study.httpGetHtml('https://$server/my/');
         if (html!=null) {
           var eventList = study.getEvents(html, activeUserId);
           var db = DatabaseServices.instance;
@@ -134,8 +137,9 @@ void callbackDispatcher() {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
+        var server=prefs.getString('server')??'';
         var study = HttpServices();
-        var html = await study.httpGetHtml('https://study.eap.gr/my/');
+        var html = await study.httpGetHtml('https://$server/my/');
         if (html!=null) {
           var courseList = study.getCourses(html, activeUserId);
           //print('courses');
@@ -212,8 +216,9 @@ void callbackDispatcher() {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         var activeUserId=prefs.getInt('userId')?? 0;
         if (activeUserId==0) { break; }
+        var server=prefs.getString('server')??'';
         var study = HttpServices();
-        var html = await study.httpGetHtml('https://study.eap.gr/my/');
+        var html = await study.httpGetHtml('https://$server/my/');
         if (html!=null) {
           var courseList = study.getCourses(html, activeUserId);
           if (courseList.isNotEmpty) {

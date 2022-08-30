@@ -3,7 +3,7 @@ import 'package:gio_app/Models.dart';
 import 'package:gio_app/Pages/SettingsPage.dart';
 import 'package:gio_app/Services/HttpServices.dart';
 import 'package:gio_app/Pages/CoursesListPage.dart';
-import '../main.dart' show activeUserId, notificationServices;
+import '../main.dart' show activeUserId, notificationServices, server;
 import 'EventsPage.dart';
 import 'package:html/dom.dart' show Document;
 import '../Services/DatabaseServices.dart';
@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     if (widget.html==null) {
       print('homepage: connecting...');
       var study=HttpServices();
-      html = await study.httpGetHtml('https://study.eap.gr/my/');
+      html = await study.httpGetHtml('https://$server/my/');
       if (html==null) {
         print('no connection');
         connected=false;
