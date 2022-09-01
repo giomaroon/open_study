@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:772251765553:android:5bcd308aed8d083eafbe10",
         "android_client_info": {
-          "package_name": "com.example.gio_app"
+          "package_name": "gio.maroon.gio_app"
         }
       },
       "oauth_client": [
